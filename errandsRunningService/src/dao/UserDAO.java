@@ -27,11 +27,12 @@ public class UserDAO {
                     int id = rs.getInt("id");
                     String name = rs.getString("name");
                     String role = rs.getString("role");
+                    String availability = rs.getString("availability"); // ✅ added
 
                     if (role.equalsIgnoreCase("customer")) {
                         return new Customer(id, name, email, hashedPassword);
                     } else if (role.equalsIgnoreCase("runner")) {
-                        return new Runner(id, name, email, hashedPassword);
+                        return new Runner(id, name, email, hashedPassword, availability);
                     } else {
                         System.out.println("⚠️ Unknown role: " + role);
                     }
@@ -66,7 +67,7 @@ public class UserDAO {
         }
 
         String hashedPassword = SecurityUtil.hashPassword(password);
-        String query = "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO users (name, email, password, role, availability) VALUES (?, ?, ?, ?, NULL)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {

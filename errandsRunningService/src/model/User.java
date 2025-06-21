@@ -1,11 +1,11 @@
 package model;
 
-public abstract class User {
-    protected int id;
-    protected String name;
-    protected String email;
-    protected String password;
-    protected String role;  // Role field (e.g., "runner", "customer")
+public class User {
+    private int id;
+    private String name;
+    private String email;
+    private String password;
+    private String role;
 
     public User(int id, String name, String email, String password, String role) {
         this.id = id;
@@ -15,29 +15,34 @@ public abstract class User {
         this.role = role;
     }
 
-    // Abstract methods
-    public abstract boolean login(String email, String password);
-    public abstract void logout();
-
-    // Getters
-    public int getId() { return id; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getPassword() { return password; }
-    public String getRole() { return role; }
-
-    // Setters (include only those you intend to allow updates for)
-    public void setName(String name) {
-        this.name = name;
+    // ✅ Getters
+    public int getId() {
+        return id;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public String getName() {
+        return name;
     }
 
-    // Optional setters (use if needed elsewhere)
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    // ✅ Setters (required for profile editing and updates)
     public void setId(int id) {
         this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setEmail(String email) {
@@ -46,5 +51,9 @@ public abstract class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

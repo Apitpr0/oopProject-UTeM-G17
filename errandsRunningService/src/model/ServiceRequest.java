@@ -9,8 +9,9 @@ public class ServiceRequest {
     private String deliveryAddress;
     private String urgency;
     private double additionalCharge;
+    private int assignedRunnerId;
 
-    // Constructor for new requests (before inserting into DB)
+    // 🔹 Constructor for new request (before DB insert)
     public ServiceRequest(int customerId, String taskDescription, String pickupAddress, String deliveryAddress) {
         this.customerId = customerId;
         this.taskDescription = taskDescription;
@@ -19,12 +20,13 @@ public class ServiceRequest {
         this.status = "Submitted";
         this.urgency = "Normal";
         this.additionalCharge = 0.0;
+        this.assignedRunnerId = 0; // default to none
     }
 
-
-    // Constructor for full object (e.g., when loading from DB)
+    // 🔹 Full constructor with all fields (including assigned runner)
     public ServiceRequest(int id, int customerId, String taskDescription, String status,
-                          String pickupAddress, String deliveryAddress, String urgency, double additionalCharge) {
+                          String pickupAddress, String deliveryAddress, String urgency,
+                          double additionalCharge, int assignedRunnerId) {
         this.id = id;
         this.customerId = customerId;
         this.taskDescription = taskDescription;
@@ -33,6 +35,7 @@ public class ServiceRequest {
         this.deliveryAddress = deliveryAddress;
         this.urgency = urgency;
         this.additionalCharge = additionalCharge;
+        this.assignedRunnerId = assignedRunnerId;
     }
 
     // === Getters ===
@@ -68,6 +71,10 @@ public class ServiceRequest {
         return additionalCharge;
     }
 
+    public int getAssignedRunnerId() {
+        return assignedRunnerId;
+    }
+
     // === Setters ===
     public void setId(int id) {
         this.id = id;
@@ -91,5 +98,9 @@ public class ServiceRequest {
 
     public void setAdditionalCharge(double additionalCharge) {
         this.additionalCharge = additionalCharge;
+    }
+
+    public void setAssignedRunnerId(int assignedRunnerId) {
+        this.assignedRunnerId = assignedRunnerId;
     }
 }

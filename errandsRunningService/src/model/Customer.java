@@ -5,13 +5,5 @@ public class Customer extends User {
         super(id, name, email, password, "customer"); // Pass role explicitly
     }
 
-    @Override
-    public boolean login(String email, String password) {
-        return this.email.equals(email) && this.password.equals(password);
-    }
 
-    @Override
-    public void logout() {
-        System.out.println(name + " logged out.");
-    }
 }
