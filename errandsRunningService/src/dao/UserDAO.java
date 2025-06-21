@@ -150,4 +150,28 @@ public class UserDAO {
 
         return false;
     }
+
+    // ✅ NEW: Update User's Name (Profile Editing)
+    public static boolean updateName(int userId, String newName) {
+        if (newName == null || newName.trim().isEmpty()) {
+            System.out.println("⚠️ New name cannot be empty.");
+            return false;
+        }
+
+        String update = "UPDATE users SET name = ? WHERE id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(update)) {
+
+            stmt.setString(1, newName.trim());
+            stmt.setInt(2, userId);
+            int rowsUpdated = stmt.executeUpdate();
+            return rowsUpdated > 0;
+
+        } catch (SQLException e) {
+            System.out.println("❌ Failed to update name: " + e.getMessage());
+        }
+
+        return false;
+    }
 }

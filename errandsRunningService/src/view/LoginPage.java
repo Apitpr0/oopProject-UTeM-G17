@@ -59,8 +59,18 @@ public class LoginPage extends JFrame {
             User user = controller.login(email, password);
             if (user != null) {
                 JOptionPane.showMessageDialog(this, "Welcome, " + user.getName());
-                // Proceed to dashboard based on role
-                dispose();
+
+                // Redirect based on role
+                if (user.getRole().equalsIgnoreCase("runner")) {
+                    dispose();
+                    new RunnerDashboard(user); // You must implement this
+                } else if (user.getRole().equalsIgnoreCase("customer")) {
+                    dispose();
+                    new CustomerDashboard(user); // You must implement this
+                } else {
+                    JOptionPane.showMessageDialog(this, "Unknown role: " + user.getRole(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid email or password.", "Error", JOptionPane.ERROR_MESSAGE);
             }
