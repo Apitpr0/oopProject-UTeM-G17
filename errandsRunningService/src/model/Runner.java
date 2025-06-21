@@ -2,7 +2,7 @@ package model;
 
 public class Runner extends User {
     public Runner(int id, String name, String email, String password) {
-        super(id, name, email, password);
+        super(id, name, email, password, "runner"); // ✅ hardcoded "runner"
     }
 
     @Override
