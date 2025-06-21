@@ -7,6 +7,7 @@ import model.RunnerAssignment;
 import model.User;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Time;
@@ -15,7 +16,6 @@ import java.util.List;
 public class RunnerDashboard extends JFrame {
     private User user;
 
-    // UI components
     private JLabel welcomeLabel;
     private JTable availabilityTable;
     private DefaultTableModel availabilityTableModel;
@@ -36,7 +36,6 @@ public class RunnerDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Header panel with welcome label and logout button
         JPanel headerPanel = new JPanel(new BorderLayout());
         welcomeLabel = new JLabel("Welcome, " + user.getName() + " (Runner)!");
         welcomeLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -51,7 +50,6 @@ public class RunnerDashboard extends JFrame {
         headerPanel.add(logoutButton, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
-        // Tabs
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("Availability", createAvailabilityPanel());
         tabbedPane.addTab("Current Assignments", createAssignmentPanel());
@@ -89,7 +87,6 @@ public class RunnerDashboard extends JFrame {
 
         loadAvailability();
 
-        // Add button logic with overlap check
         addButton.addActionListener(e -> {
             String day = dayComboBox.getSelectedItem().toString();
             String start = startTimeField.getText().trim();
@@ -118,7 +115,6 @@ public class RunnerDashboard extends JFrame {
             }
         });
 
-        // Delete selected availability
         deleteButton.addActionListener(e -> {
             int selectedRow = availabilityTable.getSelectedRow();
             if (selectedRow >= 0) {
@@ -145,7 +141,71 @@ public class RunnerDashboard extends JFrame {
                 "ID", "Title", "Description", "Status"
         }, 0);
         assignmentTable = new JTable(assignmentTableModel);
+
+        // 🌈 Set custom renderer for status column
+        assignmentTable.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                String status = value.toString();
+                if (!isSelected) {
+                    switch (status) {
+                        case "Pending":
+                            c.setBackground(new Color(255, 230, 204)); // light orange
+                            break;
+                        case "In Progress":
+                            c.setBackground(new Color(204, 229, 255)); // light blue
+                            break;
+                        case "Completed":
+                            c.setBackground(new Color(204, 255, 204)); // light green
+                            break;
+                        default:
+                            c.setBackground(Color.WHITE);
+                    }
+                } else {
+                    c.setBackground(table.getSelectionBackground());
+                }
+                return c;
+            }
+        });
+
         panel.add(new JScrollPane(assignmentTable), BorderLayout.CENTER);
+
+        JPanel statusPanel = new JPanel();
+        JLabel statusLabel = new JLabel("Update Status:");
+        String[] statuses = {"Pending", "In Progress", "Completed"};
+        JComboBox<String> statusDropdown = new JComboBox<>(statuses);
+        JButton updateStatusButton = new JButton("Update");
+        JButton refreshButton = new JButton("Refresh");
+
+        statusPanel.add(statusLabel);
+        statusPanel.add(statusDropdown);
+        statusPanel.add(updateStatusButton);
+        statusPanel.add(refreshButton);
+
+        panel.add(statusPanel, BorderLayout.SOUTH);
+
+        updateStatusButton.addActionListener(e -> {
+            int selectedRow = assignmentTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                int assignmentId = (int) assignmentTableModel.getValueAt(selectedRow, 0);
+                String newStatus = statusDropdown.getSelectedItem().toString();
+
+                boolean success = assignmentController.updateAssignmentStatus(assignmentId, newStatus);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Status updated.");
+                    loadAssignments();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed to update status.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select an assignment to update.");
+            }
+        });
+
+        refreshButton.addActionListener(e -> loadAssignments());
 
         loadAssignments();
         return panel;
@@ -184,7 +244,7 @@ public class RunnerDashboard extends JFrame {
             }
         });
 
-        panel.add(new JLabel());  // empty placeholder
+        panel.add(new JLabel());
         panel.add(saveButton);
         return panel;
     }
