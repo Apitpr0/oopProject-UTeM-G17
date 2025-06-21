@@ -1,17 +1,20 @@
 package model;
 
 public class Runner extends User {
-    public Runner(int id, String name, String email, String password) {
-        super(id, name, email, password, "runner"); // ✅ hardcoded "runner"
+    private String availability; // Optional - summary like "Mon 8-17"
+
+    public Runner(int id, String name, String email, String password, String availability) {
+        super(id, name, email, password, "runner");
+        this.availability = availability;
     }
 
-    @Override
-    public boolean login(String email, String password) {
-        return this.email.equals(email) && this.password.equals(password);
+    public String getAvailability() {
+        return availability;
     }
 
-    @Override
-    public void logout() {
-        System.out.println(name + " logged out.");
+    public void setAvailability(String availability) {
+        this.availability = availability;
     }
 }
+
+

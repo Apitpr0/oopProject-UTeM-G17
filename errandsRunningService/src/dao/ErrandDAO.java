@@ -1,83 +1,115 @@
 package dao;
 
+import model.Errand;
+import util.DBConnection;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import model.RunnerAvailability;
-import util.DBConnection;
 
 public class ErrandDAO {
 
-    public static boolean addAvailability(RunnerAvailability availability) {
-        String sql = "INSERT INTO runner_availability (runner_id, day_of_week, start_time, end_time) VALUES (?, ?, ?, ?)";
+    public static boolean insertErrand(Errand errand, int customerId) {
+        String sql = "INSERT INTO errand (customer_id, type, description, pickup_address, dropoff_address, status) VALUES (?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, availability.getRunnerId());
-            stmt.setString(2, availability.getDayOfWeek());
-            stmt.setTime(3, availability.getStartTime());
-            stmt.setTime(4, availability.getEndTime());
+            stmt.setInt(1, customerId);
+            stmt.setString(2, errand.getType());
+            stmt.setString(3, errand.getDescription());
+            stmt.setString(4, errand.getPickupAddress());
+            stmt.setString(5, errand.getDropoffAddress());
+            stmt.setString(6, errand.getStatus());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("❌ Failed to insert errand: " + e.getMessage());
             return false;
         }
     }
 
-    public static List<RunnerAvailability> getAvailabilityByRunner(int runnerId) {
-        List<RunnerAvailability> list = new ArrayList<>();
-        String sql = "SELECT * FROM runner_availability WHERE runner_id = ?";
+    public static boolean updateRunnerAssignment(int errandId, int runnerId) {
+        String sql = "UPDATE errand SET assigned_runner_id = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, runnerId);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                RunnerAvailability a = new RunnerAvailability(
-                        rs.getInt("id"),
-                        rs.getInt("runner_id"),
-                        rs.getString("day_of_week"),
-                        rs.getTime("start_time"),
-                        rs.getTime("end_time")
-                );
-                list.add(a);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public static boolean updateAvailability(RunnerAvailability availability) {
-        String sql = "UPDATE runner_availability SET day_of_week = ?, start_time = ?, end_time = ? WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, availability.getDayOfWeek());
-            stmt.setTime(2, availability.getStartTime());
-            stmt.setTime(3, availability.getEndTime());
-            stmt.setInt(4, availability.getId());
-
+            stmt.setInt(2, errandId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("❌ Failed to assign runner: " + e.getMessage());
             return false;
         }
     }
 
-    public static boolean deleteAvailability(int id) {
-        String sql = "DELETE FROM runner_availability WHERE id = ?";
+    public static boolean updateErrandStatus(int errandId, String newStatus) {
+        String sql = "UPDATE errand SET status = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newStatus);
+            stmt.setInt(2, errandId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("❌ Failed to update status: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static List<Errand> getErrandsByCustomer(int customerId) {
+        List<Errand> errands = new ArrayList<>();
+        String sql = "SELECT * FROM errand WHERE customer_id = ? ORDER BY id ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, customerId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Errand errand = new Errand(
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getString("description"),
+                        rs.getString("pickup_address"),
+                        rs.getString("dropoff_address"),
+                        rs.getString("status"),
+                        rs.getInt("assigned_runner_id")
+                );
+                errands.add(errand);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("❌ Error fetching errands: " + e.getMessage());
+        }
+
+        return errands;
+    }
+
+    public static Errand getErrandById(int id) {
+        String sql = "SELECT * FROM errand WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new Errand(
+                        rs.getInt("id"),
+                        rs.getString("type"),
+                        rs.getString("description"),
+                        rs.getString("pickup_address"),
+                        rs.getString("dropoff_address"),
+                        rs.getString("status"),
+                        rs.getInt("assigned_runner_id")
+                );
+            }
+
         } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            System.out.println("❌ Failed to retrieve errand by ID: " + e.getMessage());
         }
+        return null;
     }
 }

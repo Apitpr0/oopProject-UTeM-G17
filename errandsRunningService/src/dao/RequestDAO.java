@@ -10,8 +10,8 @@ import java.util.List;
 public class RequestDAO {
 
     public static boolean submitRequest(ServiceRequest request) {
-        String sql = "INSERT INTO request (customer_id, task_description, status, pickup_address, delivery_address, urgency, additional_charge) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO request (customer_id, task_description, status, pickup_address, delivery_address, urgency, additional_charge, assigned_runner_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -23,6 +23,7 @@ public class RequestDAO {
             stmt.setString(5, request.getDeliveryAddress());
             stmt.setString(6, request.getUrgency());
             stmt.setDouble(7, request.getAdditionalCharge());
+            stmt.setInt(8, request.getAssignedRunnerId()); // ✅ Include runner assignment
             return stmt.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -50,7 +51,8 @@ public class RequestDAO {
                         rs.getString("pickup_address"),
                         rs.getString("delivery_address"),
                         rs.getString("urgency"),
-                        rs.getDouble("additional_charge")
+                        rs.getDouble("additional_charge"),
+                        rs.getInt("assigned_runner_id") // ✅ Read assigned runner
                 );
                 requests.add(request);
             }
@@ -61,7 +63,6 @@ public class RequestDAO {
 
         return requests;
     }
-
 
     public static boolean updateStatus(int requestId, String newStatus) {
         String sql = "UPDATE request SET status = ? WHERE id = ?";

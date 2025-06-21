@@ -1,29 +1,50 @@
 package model;
 
 public class Errand {
-    private int errandId;
-    private int customerId;
-    private int runnerId; // optional: -1 if unassigned
-    private String title;
+    private int id;
+    private String type;
     private String description;
-    private String status; // pending, assigned, completed
+    private String pickupAddress;
+    private String dropoffAddress;
+    private String status;
+    private int assignedRunnerId; // Reference to Runner
 
-    public Errand(int errandId, int customerId, int runnerId, String title, String description, String status) {
-        this.errandId = errandId;
-        this.customerId = customerId;
-        this.runnerId = runnerId;
-        this.title = title;
+    // Constructor for creating new Errand (without ID)
+    public Errand(String type, String description, String pickupAddress, String dropoffAddress) {
+        this.type = type;
         this.description = description;
-        this.status = status;
+        this.pickupAddress = pickupAddress;
+        this.dropoffAddress = dropoffAddress;
+        this.status = "Submitted";
+        this.assignedRunnerId = -1; // -1 means not assigned yet
     }
 
-    public int getErrandId() { return errandId; }
-    public int getCustomerId() { return customerId; }
-    public int getRunnerId() { return runnerId; }
-    public String getTitle() { return title; }
-    public String getDescription() { return description; }
-    public String getStatus() { return status; }
+    // Constructor with all fields (e.g., from DB)
+    public Errand(int id, String type, String description, String pickupAddress, String dropoffAddress, String status, int assignedRunnerId) {
+        this.id = id;
+        this.type = type;
+        this.description = description;
+        this.pickupAddress = pickupAddress;
+        this.dropoffAddress = dropoffAddress;
+        this.status = status;
+        this.assignedRunnerId = assignedRunnerId;
+    }
 
-    public void setRunnerId(int runnerId) { this.runnerId = runnerId; }
+    // === Getters & Setters ===
+
+    public int getId() { return id; }
+    public String getType() { return type; }
+    public String getDescription() { return description; }
+    public String getPickupAddress() { return pickupAddress; }
+    public String getDropoffAddress() { return dropoffAddress; }
+    public String getStatus() { return status; }
+    public int getAssignedRunnerId() { return assignedRunnerId; }
+
+    public void setId(int id) { this.id = id; }
+    public void setType(String type) { this.type = type; }
+    public void setDescription(String description) { this.description = description; }
+    public void setPickupAddress(String pickupAddress) { this.pickupAddress = pickupAddress; }
+    public void setDropoffAddress(String dropoffAddress) { this.dropoffAddress = dropoffAddress; }
     public void setStatus(String status) { this.status = status; }
+    public void assignRunner(int runnerId) { this.assignedRunnerId = runnerId; }
 }
