@@ -67,10 +67,9 @@ public class LoginPage extends JFrame {
 
                 if (user instanceof Customer) {
                     SwingUtilities.invokeLater(() -> new CustomerDashboard((Customer) user));
-                } else if (user instanceof Runner) {
-                    JOptionPane.showMessageDialog(this, "Runner dashboard coming soon.");
-                    // Future: new RunnerDashboard((Runner) user);
-                } else {
+                }else if (user instanceof Runner) {
+                    SwingUtilities.invokeLater(() -> new RunnerDashboard(user)); // Open the real RunnerDashboard
+                }else {
                     JOptionPane.showMessageDialog(this, "Unknown role.");
                 }
             } else {
