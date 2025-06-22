@@ -2,63 +2,41 @@ package controller;
 
 import dao.ServiceDAO;
 import dao.RunnerDAO;
-import model.Runner;
 import model.ServiceRequest;
 import util.DBConnection;
-
 import java.sql.*;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 public class ServiceController {
 
-    private ServiceDAO serviceDAO;
-    private RunnerDAO runnerDAO;
+    private final ServiceDAO serviceDAO;
 
     public ServiceController() {
-        serviceDAO = new ServiceDAO();
-        runnerDAO = new RunnerDAO();
+        this.serviceDAO = new ServiceDAO();
     }
 
-    // 🔁 Standard request submission
     public boolean submitRequest(ServiceRequest request) {
         return serviceDAO.insertRequest(request);
     }
 
-    // ✅ Request submission with random runner assignment
     public boolean submitRequestWithRunnerAssignment(ServiceRequest request) {
-        List<Runner> availableRunners;
+        // Only assign to Bob (runner_id = 2) if available
+        Integer bobId = RunnerDAO.getBobIfAvailableNow();
 
-        if ("High".equalsIgnoreCase(request.getUrgency())) {
-            // Prioritize runners with time-based availability
-            availableRunners = runnerDAO.getAvailableRunnersByTime();
-        } else {
-            // Use any available runner
-            availableRunners = runnerDAO.getAvailableRunners();
+        if (bobId != null && bobId == 2) {
+            request.setAssignedRunnerId(bobId);
+            System.out.println("✅ Assigned Bob (runner_id=2) to request");
+            return serviceDAO.insertRequestWithRunner(request, bobId);
         }
 
-        if (availableRunners.isEmpty()) {
-            System.out.println("❌ No runners available for urgency: " + request.getUrgency());
-            return serviceDAO.insertRequest(request); // Fallback: Submit without assignment
-        }
-
-        // ✅ Pick random runner from the filtered list
-        Runner assignedRunner = availableRunners.get(new Random().nextInt(availableRunners.size()));
-        request.setAssignedRunnerId(assignedRunner.getId());
-
-        System.out.println("✅ Assigned " + assignedRunner.getName() + " for urgency: " + request.getUrgency());
-        return serviceDAO.insertRequestWithRunner(request, assignedRunner.getId());
+        System.out.println("❌ Bob is not available - request submitted without assignment");
+        return serviceDAO.insertRequest(request);
     }
 
-
-
-    // 📦 Get customer-specific requests
     public List<ServiceRequest> getRequestsByCustomer(int customerId) {
         return serviceDAO.getRequestsByCustomer(customerId);
     }
 
-    // 🧾 Get assigned runner's name by request ID
     public String getRunnerNameByRequestId(int requestId) {
         String sql = "SELECT u.name FROM users u JOIN cust_request r ON u.id = r.assigned_runner_id WHERE r.id = ?";
         try (Connection conn = DBConnection.getConnection();

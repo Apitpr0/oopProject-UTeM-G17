@@ -2,7 +2,6 @@ package controller;
 
 import model.Errand;
 import service.ErrandService;
-
 import java.util.List;
 
 public class ErrandController {

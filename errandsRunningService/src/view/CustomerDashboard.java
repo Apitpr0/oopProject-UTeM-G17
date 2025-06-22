@@ -134,20 +134,9 @@ public class CustomerDashboard extends JFrame {
         List<Runner> availableRunners = runnerController.getAvailableRunners();
 
         for (Runner runner : availableRunners) {
-            String availability = runner.getAvailability(); // e.g. "Monday 08:00-17:00"
-            String day = "-", start = "-", end = "-";
-
-            if (availability != null && availability.contains(" ")) {
-                String[] parts = availability.split(" ");
-                if (parts.length >= 2) {
-                    day = parts[0];
-                    String[] timeParts = parts[1].split("-");
-                    if (timeParts.length == 2) {
-                        start = timeParts[0];
-                        end = timeParts[1];
-                    }
-                }
-            }
+            String day = runner.getDayOfWeek();
+            String start = runner.getStartTime();
+            String end = runner.getEndTime();
 
             runnerTableModel.addRow(new Object[]{
                     runner.getId(),

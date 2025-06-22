@@ -15,15 +15,13 @@ public class RunnerAssignmentController {
         return RunnerAssignmentDAO.updateStatus(assignmentId, newStatus);
     }
 
-    // ✅ Auto-assign Bob (runner_id = 2) if he is available
+    // Auto-assign only to Bob if available
     public boolean autoAssignToBobOnly(int errandId, String title, String description) {
-        Integer bobId = RunnerDAO.getBobIfAvailableNow();
-
-        if (bobId != null && bobId == 2) {
-            return RunnerAssignmentDAO.assignBobToErrandIfAvailable(errandId, title, description);
-        } else {
+        if (!RunnerDAO.isBobAvailable()) {
             System.out.println("❌ Bob is not available now. No runner will be assigned.");
             return false;
         }
+
+        return RunnerAssignmentDAO.assignBobToErrandIfAvailable(errandId, title, description);
     }
 }
