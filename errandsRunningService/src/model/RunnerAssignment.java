@@ -15,12 +15,14 @@ public class RunnerAssignment {
         this.status = status;
     }
 
+    // Getters
     public int getId() { return id; }
     public int getRunnerId() { return runnerId; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public String getStatus() { return status; }
 
+    // Setters
     public void setStatus(String status) {
         this.status = status;
     }

@@ -21,32 +21,21 @@ public class UserDAO {
 
             if (rs.next()) {
                 String hashedPassword = rs.getString("password");
-                String inputHash = SecurityUtil.hashPassword(password);
-
-                if (inputHash.equals(hashedPassword)) {
+                if (SecurityUtil.hashPassword(password).equals(hashedPassword)) {
                     int id = rs.getInt("id");
                     String name = rs.getString("name");
                     String role = rs.getString("role");
-                    String availability = rs.getString("availability"); // ✅ added
 
-                    if (role.equalsIgnoreCase("customer")) {
-                        return new Customer(id, name, email, hashedPassword);
-                    } else if (role.equalsIgnoreCase("runner")) {
+                    if ("runner".equalsIgnoreCase(role)) {
                         return new Runner(id, name, email, hashedPassword, "-", "-", "-");
                     } else {
-                        System.out.println("⚠️ Unknown role: " + role);
+                        return new Customer(id, name, email, hashedPassword);
                     }
-                } else {
-                    System.out.println("❌ Incorrect password.");
                 }
-            } else {
-                System.out.println("❌ User not found.");
             }
-
         } catch (SQLException e) {
-            System.out.println("❌ Login failed: " + e.getMessage());
+            e.printStackTrace();
         }
-
         return null;
     }
 
