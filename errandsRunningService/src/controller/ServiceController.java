@@ -2,10 +2,13 @@ package controller;
 
 import dao.ServiceDAO;
 import dao.RunnerDAO;
+import dao.RequestDAO;
+import model.Runner;
 import model.ServiceRequest;
 import util.DBConnection;
 import java.sql.*;
 import java.util.List;
+import java.util.Map;
 
 public class ServiceController {
 
@@ -35,6 +38,13 @@ public class ServiceController {
 
     public List<ServiceRequest> getRequestsByCustomer(int customerId) {
         return serviceDAO.getRequestsByCustomer(customerId);
+    }
+    public List<ServiceRequest> getCompletedRequests() {
+        return RequestDAO.getRequestsByStatus("Completed");
+    }
+
+    public Map<Runner, Integer> getRunnerPerformance() {
+        return RequestDAO.getRunnerPerformanceMap(); // You implement this in DAO
     }
 
     public String getRunnerNameByRequestId(int requestId) {

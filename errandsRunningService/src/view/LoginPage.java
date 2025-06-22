@@ -1,6 +1,7 @@
 package view;
 
 import controller.UserController;
+import model.Admin;
 import model.Customer;
 import model.Runner;
 import model.User;
@@ -67,8 +68,10 @@ public class LoginPage extends JFrame {
 
                 if (user instanceof Customer) {
                     SwingUtilities.invokeLater(() -> new CustomerDashboard((Customer) user));
-                }else if (user instanceof Runner) {
+                } else if (user instanceof Runner) {
                     SwingUtilities.invokeLater(() -> new RunnerDashboard(user)); // Open the real RunnerDashboard
+                }else if (user instanceof Admin) {
+                    SwingUtilities.invokeLater(() -> new AdminDashboard());
                 }else {
                     JOptionPane.showMessageDialog(this, "Unknown role.");
                 }

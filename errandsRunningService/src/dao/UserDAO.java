@@ -1,5 +1,6 @@
 package dao;
 
+import model.Admin;
 import model.Customer;
 import model.Runner;
 import model.User;
@@ -28,6 +29,8 @@ public class UserDAO {
 
                     if ("runner".equalsIgnoreCase(role)) {
                         return new Runner(id, name, email, hashedPassword, "-", "-", "-");
+                    } else if ("admin".equalsIgnoreCase(role)) {
+                        return new Admin(id, name, email, hashedPassword);
                     } else {
                         return new Customer(id, name, email, hashedPassword);
                     }
