@@ -32,7 +32,7 @@ public class UserDAO {
                     if (role.equalsIgnoreCase("customer")) {
                         return new Customer(id, name, email, hashedPassword);
                     } else if (role.equalsIgnoreCase("runner")) {
-                        return new Runner(id, name, email, hashedPassword, availability);
+                        return new Runner(id, name, email, hashedPassword, "-", "-", "-");
                     } else {
                         System.out.println("⚠️ Unknown role: " + role);
                     }
