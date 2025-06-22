@@ -13,8 +13,8 @@ public class ErrandController {
         return errandService.submitErrand(errand, customerId);
     }
 
-    public boolean assignRunnerToErrand(int errandId, int runnerId) {
-        return errandService.assignRunner(errandId, runnerId);
+    public boolean assignRunnerToErrand(int errandId, String title, String description) {
+        return errandService.assignRunner(errandId, title, description);
     }
 
     public boolean updateErrandStatus(int errandId, String status) {

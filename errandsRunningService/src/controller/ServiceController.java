@@ -9,6 +9,7 @@ import util.DBConnection;
 import java.sql.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 public class ServiceController {
 
@@ -27,21 +28,30 @@ public class ServiceController {
 
     // ✅ Request submission with random runner assignment
     public boolean submitRequestWithRunnerAssignment(ServiceRequest request) {
-        List<Runner> availableRunners = runnerDAO.getAvailableRunners();
+        List<Runner> availableRunners;
 
-        if (availableRunners.isEmpty()) {
-            System.out.println("❌ No available runners found.");
-            return serviceDAO.insertRequest(request); // Submit without runner
+        if ("High".equalsIgnoreCase(request.getUrgency())) {
+            // Prioritize runners with time-based availability
+            availableRunners = runnerDAO.getAvailableRunnersByTime();
+        } else {
+            // Use any available runner
+            availableRunners = runnerDAO.getAvailableRunners();
         }
 
-        // 🔀 Shuffle list to assign random runner
-        Collections.shuffle(availableRunners);
-        Runner assignedRunner = availableRunners.get(0);
+        if (availableRunners.isEmpty()) {
+            System.out.println("❌ No runners available for urgency: " + request.getUrgency());
+            return serviceDAO.insertRequest(request); // Fallback: Submit without assignment
+        }
+
+        // ✅ Pick random runner from the filtered list
+        Runner assignedRunner = availableRunners.get(new Random().nextInt(availableRunners.size()));
         request.setAssignedRunnerId(assignedRunner.getId());
 
-        System.out.println("✅ Randomly assigned Runner: " + assignedRunner.getName());
+        System.out.println("✅ Assigned " + assignedRunner.getName() + " for urgency: " + request.getUrgency());
         return serviceDAO.insertRequestWithRunner(request, assignedRunner.getId());
     }
+
+
 
     // 📦 Get customer-specific requests
     public List<ServiceRequest> getRequestsByCustomer(int customerId) {
