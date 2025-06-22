@@ -142,7 +142,7 @@ public class RunnerDashboard extends JFrame {
         }, 0);
         assignmentTable = new JTable(assignmentTableModel);
 
-        // 🌈 Set custom renderer for status column
+        // 🌈 Set custom renderer for status column with bold + color
         assignmentTable.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -150,16 +150,22 @@ public class RunnerDashboard extends JFrame {
                                                            int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 String status = value.toString();
+                c.setForeground(Color.BLACK);
+                setOpaque(true);
+
                 if (!isSelected) {
                     switch (status) {
                         case "Pending":
-                            c.setBackground(new Color(255, 230, 204)); // light orange
+                            c.setBackground(new Color(255, 245, 204)); // Light yellow/orange
+                            c.setFont(c.getFont().deriveFont(Font.PLAIN));
                             break;
                         case "In Progress":
-                            c.setBackground(new Color(204, 229, 255)); // light blue
+                            c.setBackground(new Color(204, 229, 255)); // Light blue
+                            c.setFont(c.getFont().deriveFont(Font.BOLD)); // Bold
                             break;
                         case "Completed":
-                            c.setBackground(new Color(204, 255, 204)); // light green
+                            c.setBackground(new Color(204, 255, 204)); // Light green
+                            c.setFont(c.getFont().deriveFont(Font.PLAIN));
                             break;
                         default:
                             c.setBackground(Color.WHITE);
@@ -212,19 +218,33 @@ public class RunnerDashboard extends JFrame {
     }
 
     private JPanel createProfilePanel() {
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        JPanel outerPanel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JLabel nameLabel = new JLabel("Name:");
+        JLabel emailLabel = new JLabel("Email:");
 
         JTextField nameField = new JTextField(user.getName());
         JTextField emailField = new JTextField(user.getEmail());
         emailField.setEditable(false);
 
-        panel.add(new JLabel("Name:"));
-        panel.add(nameField);
-        panel.add(new JLabel("Email:"));
-        panel.add(emailField);
+        Dimension fieldSize = new Dimension(200, 25);  // Smaller height
+        nameField.setPreferredSize(fieldSize);
+        emailField.setPreferredSize(fieldSize);
 
-        JButton saveButton = new JButton("Update Name");
+        nameField.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        emailField.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
+        JButton saveButton = new JButton("Update");
+        saveButton.setFocusPainted(false);
+        saveButton.setBackground(new Color(66, 133, 244));
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+
         saveButton.addActionListener(e -> {
             String newName = nameField.getText().trim();
             if (!newName.isEmpty()) {
@@ -240,14 +260,28 @@ public class RunnerDashboard extends JFrame {
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Name cannot be empty.",
-                        "Error", JOptionPane.WARNING_MESSAGE);
+                        "Warning", JOptionPane.WARNING_MESSAGE);
             }
         });
 
-        panel.add(new JLabel());
-        panel.add(saveButton);
-        return panel;
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(nameLabel, gbc);
+        gbc.gridx = 1; gbc.gridy = 0;
+        panel.add(nameField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(emailLabel, gbc);
+        gbc.gridx = 1; gbc.gridy = 1;
+        panel.add(emailField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        panel.add(saveButton, gbc);
+
+        outerPanel.add(panel, BorderLayout.CENTER);
+        return outerPanel;
     }
+
 
     private void loadAvailability() {
         availabilityTableModel.setRowCount(0);
