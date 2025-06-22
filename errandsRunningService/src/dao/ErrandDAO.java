@@ -30,18 +30,26 @@ public class ErrandDAO {
     }
 
     public static boolean updateRunnerAssignment(int errandId, int runnerId) {
-        String sql = "UPDATE errand SET assigned_runner_id = ? WHERE id = ?";
+        if (runnerId != 2) {
+            System.out.println("❌ updateRunnerAssignment blocked: Only Bob (runner_id=2) is allowed.");
+            return false;
+        }
+
+        String sql = "UPDATE errands SET runner_id = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, runnerId);
             stmt.setInt(2, errandId);
+
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
-            System.out.println("❌ Failed to assign runner: " + e.getMessage());
+            System.err.println("❌ Failed to assign runner: " + e.getMessage());
             return false;
         }
     }
+
 
     public static boolean updateErrandStatus(int errandId, String newStatus) {
         String sql = "UPDATE errand SET status = ? WHERE id = ?";
