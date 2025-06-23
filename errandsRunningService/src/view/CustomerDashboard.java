@@ -143,7 +143,7 @@ public class CustomerDashboard extends JFrame {
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 dispose(); // Close window
-                // new LoginScreen(); // Uncomment if login screen exists
+                SwingUtilities.invokeLater(() -> new LoginPage("")); // Show login screen again
             }
         });
 
