@@ -20,18 +20,31 @@ public class ServiceController {
     }
 
     public boolean submitRequestWithRunnerAssignment(ServiceRequest request) {
-        // Only assign to Bob (runner_id = 2) if available
+        // First, try assigning to Bob
         Integer bobId = RunnerDAO.getBobIfAvailableNow();
 
         if (bobId != null && bobId == 2) {
             request.setAssignedRunnerId(bobId);
             System.out.println("✅ Assigned Bob (runner_id=2) to request");
             return serviceDAO.insertRequestWithRunner(request, bobId);
-        }
+        } else {
+            // if Bob is not available, try other runners
+            List<model.Runner> availableRunners = RunnerDAO.getAvailableRunners();
 
-        System.out.println("❌ Bob is not available - request submitted without assignment");
-        return serviceDAO.insertRequest(request);
+            for (model.Runner runner : availableRunners) {
+                if (runner.getId() != 2) { // Skip Bob
+                    request.setAssignedRunnerId(runner.getId());
+                    System.out.println("✅ Assigned alternative runner (runner_id=" + runner.getId() + ") to request");
+                    return serviceDAO.insertRequestWithRunner(request, runner.getId());
+                }
+            }
+
+            // No runner available
+            System.out.println("❌ No available runners - request submitted without assignment");
+            return serviceDAO.insertRequest(request);
+        }
     }
+
 
     public List<ServiceRequest> getRequestsByCustomer(int customerId) {
         return serviceDAO.getRequestsByCustomer(customerId);

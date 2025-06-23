@@ -46,36 +46,69 @@ public class CustomerDashboard extends JFrame {
         requestTable = new JTable(requestTableModel);
         centerPanel.add(new JScrollPane(requestTable));
 
+
         // Runner Availability Table
-        String[] runnerColumns = {"Runner ID", "Name", "Day Available", "Start Time", "End Time"};
+        String[] runnerColumns = {"Runner ID", "Name", "Day Available", "Start Time", "End Time", "Rating"};
         runnerTableModel = new DefaultTableModel(runnerColumns, 0);
         runnerTable = new JTable(runnerTableModel);
         centerPanel.add(new JScrollPane(runnerTable));
 
         add(centerPanel, BorderLayout.CENTER);
 
-        // Form inputs
-        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 5));
-        JTextField taskField = new JTextField();
-        JTextField pickupField = new JTextField();
-        JTextField deliveryField = new JTextField();
+        // Form inputs using GridBagLayout for better alignment
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setBorder(BorderFactory.createEmptyBorder(15 , 15, 15, 15));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JTextField taskField = new JTextField(20);
+        JTextField pickupField = new JTextField(20);
+        JTextField deliveryField = new JTextField(20);
         JCheckBox urgentBox = new JCheckBox("Urgent (+RM10)");
 
-        formPanel.add(new JLabel("Task Description:"));
-        formPanel.add(taskField);
-        formPanel.add(new JLabel("Pickup Address:"));
-        formPanel.add(pickupField);
-        formPanel.add(new JLabel("Delivery Address:"));
-        formPanel.add(deliveryField);
-        formPanel.add(new JLabel(""));
-        formPanel.add(urgentBox);
+        // Task row
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        formPanel.add(new JLabel("Task Description:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(taskField, gbc);
 
-        JButton submitButton = new JButton("Submit Request");
-        formPanel.add(submitButton);
+        // Pickup row
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        formPanel.add(new JLabel("Pickup Address:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(pickupField, gbc);
+
+        // Delivery row
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        formPanel.add(new JLabel("Delivery Address:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(deliveryField, gbc);
+
+        // Urgent checkbox
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        formPanel.add(urgentBox, gbc);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton submitButton = new JButton("Submit");
+        submitButton.setPreferredSize(new Dimension(100, 30));
+        JButton logoutButton = new JButton("Log Out");
+        logoutButton.setPreferredSize(new Dimension(100, 30));
+        buttonPanel.add(submitButton);
+        buttonPanel.add(logoutButton);
+
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        formPanel.add(buttonPanel, gbc);
 
         add(formPanel, BorderLayout.SOUTH);
 
-        // Button logic
+        // Submit button logic
         submitButton.addActionListener(e -> {
             String task = taskField.getText().trim();
             String pickup = pickupField.getText().trim();
@@ -105,6 +138,15 @@ public class CustomerDashboard extends JFrame {
             }
         });
 
+        // Log out button logic
+        logoutButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); // Close window
+                // new LoginScreen(); // Uncomment if login screen exists
+            }
+        });
+
         refreshRequestTable();
         refreshRunnerTable();
         setVisible(true);
@@ -131,21 +173,17 @@ public class CustomerDashboard extends JFrame {
 
     private void refreshRunnerTable() {
         runnerTableModel.setRowCount(0);
-        List<Runner> availableRunners = runnerController.getAvailableRunners();
+        List<Runner> allRunners = runnerController.getAllRunnersWithAvailability();
 
-        for (Runner runner : availableRunners) {
-            String day = runner.getDayOfWeek();
-            String start = runner.getStartTime();
-            String end = runner.getEndTime();
-
+        for (Runner runner : allRunners) {
             runnerTableModel.addRow(new Object[]{
                     runner.getId(),
                     runner.getName(),
-                    day,
-                    start,
-                    end
+                    runner.getDayOfWeek(),
+                    runner.getStartTime(),
+                    runner.getEndTime(),
+                    runner.getRating()
             });
         }
     }
-
 }

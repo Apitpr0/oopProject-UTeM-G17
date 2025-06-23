@@ -14,4 +14,9 @@ public class RunnerController {
     public boolean updateAvailability(int runnerId, boolean available) {
         return RunnerDAO.setRunnerAvailability(runnerId, available);
     }
+
+    public List<Runner> getAllRunnersWithAvailability() {
+        return RunnerDAO.getAllRunnersWithAvailability();
+    }
+
 }
