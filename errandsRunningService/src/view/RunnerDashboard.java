@@ -41,8 +41,18 @@ public class RunnerDashboard extends JFrame {
         welcomeLabel.setHorizontalAlignment(SwingConstants.LEFT);
         JButton logoutButton = new JButton("Logout");
         logoutButton.addActionListener(e -> {
-            dispose();
-            SwingUtilities.invokeLater(() -> new LoginPage(""));
+            int choice = JOptionPane.showConfirmDialog(
+                    this,
+                    "Are you sure you want to logout?",
+                    "Confirm Logout",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (choice == JOptionPane.YES_OPTION) {
+                dispose();
+                SwingUtilities.invokeLater(() -> new LoginPage(""));
+            }
         });
 
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
