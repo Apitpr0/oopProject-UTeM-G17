@@ -11,6 +11,7 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class CustomerDashboard extends JFrame {
@@ -56,7 +57,7 @@ public class CustomerDashboard extends JFrame {
         // 📑 Tabbed Pane
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // Tab 1: My Requests
+        // My Requests Tab
         JPanel requestPanel = new JPanel(new BorderLayout(10, 10));
         requestPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         String[] requestColumns = {"Request ID", "Task", "Pickup", "Delivery", "Urgency", "Status", "Charge (RM)", "Assigned Runner"};
@@ -66,7 +67,7 @@ public class CustomerDashboard extends JFrame {
         requestPanel.add(new JScrollPane(requestTable), BorderLayout.CENTER);
         tabbedPane.addTab("My Requests", requestPanel);
 
-        // Tab 2: Runner Availability
+        // Runner Availability Tab
         JPanel runnerPanel = new JPanel(new BorderLayout(10, 10));
         runnerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         String[] runnerColumns = {"Runner ID", "Name", "Day Available", "Start Time", "End Time", "Rating"};
@@ -78,7 +79,7 @@ public class CustomerDashboard extends JFrame {
 
         add(tabbedPane, BorderLayout.CENTER);
 
-        // 📝 Form Panel at Bottom
+        // 📝 Form Panel
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(Color.GRAY),
@@ -95,29 +96,26 @@ public class CustomerDashboard extends JFrame {
         JTextField deliveryField = new JTextField(20);
         JCheckBox urgentBox = new JCheckBox("Urgent (+RM10)");
 
-        // Task
+        // Add form fields
         gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("Task Description:"), gbc);
         gbc.gridx = 1;
         formPanel.add(taskField, gbc);
 
-        // Pickup
         gbc.gridx = 0; gbc.gridy = 1;
         formPanel.add(new JLabel("Pickup Address:"), gbc);
         gbc.gridx = 1;
         formPanel.add(pickupField, gbc);
 
-        // Delivery
         gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Delivery Address:"), gbc);
         gbc.gridx = 1;
         formPanel.add(deliveryField, gbc);
 
-        // Urgency
         gbc.gridx = 1; gbc.gridy = 3;
         formPanel.add(urgentBox, gbc);
 
-        // Submit button (aligned right)
+        // Submit button
         JButton submitButton = new JButton("Submit");
         submitButton.setPreferredSize(new Dimension(100, 30));
         JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -127,40 +125,57 @@ public class CustomerDashboard extends JFrame {
 
         add(formPanel, BorderLayout.SOUTH);
 
-        // 🧠 Submit logic
+        // 🧠 Quote + Submit Logic
         submitButton.addActionListener(e -> {
             String task = taskField.getText().trim();
             String pickup = pickupField.getText().trim();
             String delivery = deliveryField.getText().trim();
+            boolean isUrgent = urgentBox.isSelected();
 
             if (task.isEmpty() || pickup.isEmpty() || delivery.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please fill in all fields.");
                 return;
             }
 
-            boolean isUrgent = urgentBox.isSelected();
-            ServiceRequest request = isUrgent
-                    ? new UrgentServiceRequest(customer.getId(), task, pickup, delivery)
-                    : new ServiceRequest(customer.getId(), task, pickup, delivery);
+            double[] quoteDetails = calculateQuote(pickup, delivery, isUrgent);
+            DecimalFormat df = new DecimalFormat("0.00");
 
-            boolean success = serviceController.submitRequestWithRunnerAssignment(request);
-            if (success) {
-                JOptionPane.showMessageDialog(this, "✅ Request submitted and runner assigned!");
-                taskField.setText("");
-                pickupField.setText("");
-                deliveryField.setText("");
-                urgentBox.setSelected(false);
-                refreshRequestTable();
-                refreshRunnerTable();
-            } else {
-                JOptionPane.showMessageDialog(this, "❌ Failed to submit request.");
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Quote Details:\n" +
+                            "Distance: " + String.format("%.1f", quoteDetails[0]) + " km\n" +
+                            "Base Fee: RM" + df.format(quoteDetails[1]) + "\n" +
+                            "Distance Fee: RM" + df.format(quoteDetails[2]) + "\n" +
+                            (isUrgent ? "Urgency Surcharge: RM10.00\n" : "") +
+                            "Tax (10%): RM" + df.format(quoteDetails[3]) + "\n" +
+                            "--------------------------\n" +
+                            "Total: RM" + df.format(quoteDetails[4]) + "\n\n" +
+                            "Do you want to proceed?",
+                    "Quote Preview", JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                ServiceRequest request = isUrgent
+                        ? new UrgentServiceRequest(customer.getId(), task, pickup, delivery)
+                        : new ServiceRequest(customer.getId(), task, pickup, delivery);
+
+                boolean success = serviceController.submitRequestWithRunnerAssignment(request);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "✅ Request submitted!");
+                    taskField.setText("");
+                    pickupField.setText("");
+                    deliveryField.setText("");
+                    urgentBox.setSelected(false);
+                    refreshRequestTable();
+                    refreshRunnerTable();
+                } else {
+                    JOptionPane.showMessageDialog(this, "❌ Failed to submit request.");
+                }
             }
         });
 
-        // Refresh data
         refreshRequestTable();
         refreshRunnerTable();
-
         setVisible(true);
     }
 
@@ -197,5 +212,24 @@ public class CustomerDashboard extends JFrame {
                     runner.getRating()
             });
         }
+    }
+
+    private double[] calculateQuote(String pickup, String delivery, boolean isUrgent) {
+        double baseFee = 5.00;
+        double perKmRate = 1.50;
+        double urgentCharge = 10.00;
+        double taxRate = 0.10;
+
+        double distance = calculateDistance(pickup, delivery);
+        double distanceFee = distance * perKmRate;
+        double subtotal = baseFee + distanceFee + (isUrgent ? urgentCharge : 0);
+        double tax = subtotal * taxRate;
+        double total = subtotal + tax;
+
+        return new double[]{distance, baseFee, distanceFee, tax, total};
+    }
+
+    private double calculateDistance(String pickup, String delivery) {
+        return 2 + Math.random() * 18; // 2–20km range
     }
 }
