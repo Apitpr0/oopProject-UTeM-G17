@@ -71,7 +71,7 @@ public class LoginPage extends JFrame {
                 } else if (user instanceof Runner) {
                     SwingUtilities.invokeLater(() -> new RunnerDashboard(user)); // Open the real RunnerDashboard
                 }else if (user instanceof Admin) {
-                    SwingUtilities.invokeLater(() -> new AdminDashboard());
+                    SwingUtilities.invokeLater(() -> new AdminDashboard((Admin)user));
                 }else {
                     JOptionPane.showMessageDialog(this, "Unknown role.");
                 }

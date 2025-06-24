@@ -10,6 +10,8 @@ public class ServiceRequest {
     private String urgency;
     private double additionalCharge;
     private int assignedRunnerId;
+    private int rating;
+    private String completionDate;
 
     // 🔹 Constructor for new request (before DB insert)
     public ServiceRequest(int customerId, String taskDescription, String pickupAddress, String deliveryAddress) {
@@ -102,5 +104,21 @@ public class ServiceRequest {
 
     public void setAssignedRunnerId(int assignedRunnerId) {
         this.assignedRunnerId = assignedRunnerId;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public String getCompletionDate() {
+        return completionDate;
+    }
+
+    public void setCompletionDate(String completionDate) {
+        this.completionDate = completionDate;
     }
 }

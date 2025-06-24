@@ -6,6 +6,7 @@ import model.User;
 public class UserController {
 
     public User login(String email, String password) {
+
         return UserDAO.login(email, password);
     }
 

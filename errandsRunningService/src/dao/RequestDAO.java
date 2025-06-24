@@ -36,7 +36,7 @@ public class RequestDAO {
     }
     public static List<ServiceRequest> getRequestsByStatus(String status) {
         List<ServiceRequest> list = new ArrayList<>();
-        String sql = "SELECT * FROM cust_request WHERE status = ?";
+        String sql = "SELECT * FROM runner_assignments WHERE status = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -60,44 +60,6 @@ public class RequestDAO {
         }
 
         return list;
-    }
-    public static Map<Runner, Integer> getRunnerPerformanceMap() {
-        Map<Runner, Integer> map = new HashMap<>();
-
-        String sql = """
-        SELECT ra.runner_id, u.name, COUNT(cr.id) AS total
-        FROM runner_assignments ra
-        JOIN users u ON ra.runner_id = u.id
-        JOIN cust_request cr ON ra.id = cr.assigned_runner_id
-        WHERE cr.status = 'Completed'
-        GROUP BY ra.runner_id, u.name
-        ORDER BY total DESC
-        """;
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                Runner r = new Runner(
-                    rs.getInt("runner_id"),
-                    rs.getString("name"),
-                    "", // email not available in result set
-                    "", // password not needed
-                    "-", // placeholder for missing fields
-                    "-",
-                    "-"
-                );
-                r.setId(rs.getInt("runner_id"));
-                r.setName(rs.getString("name"));
-                map.put(r, rs.getInt("total"));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return map;
     }
     public static List<ServiceRequest> getRequestsByCustomerId(int customerId) {
         List<ServiceRequest> requests = new ArrayList<>();

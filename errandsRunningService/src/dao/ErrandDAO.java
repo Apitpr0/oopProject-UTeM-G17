@@ -10,7 +10,7 @@ import java.util.List;
 public class ErrandDAO {
 
     public static boolean insertErrand(Errand errand, int customerId) {
-        String sql = "INSERT INTO errand (customer_id, type, description, pickup_address, dropoff_address, status) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO errands (customer_id, type, description, pickup_address, dropoff_address, status) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -52,7 +52,7 @@ public class ErrandDAO {
 
 
     public static boolean updateErrandStatus(int errandId, String newStatus) {
-        String sql = "UPDATE errand SET status = ? WHERE id = ?";
+        String sql = "UPDATE errands SET status = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -67,7 +67,7 @@ public class ErrandDAO {
 
     public static List<Errand> getErrandsByCustomer(int customerId) {
         List<Errand> errands = new ArrayList<>();
-        String sql = "SELECT * FROM errand WHERE customer_id = ? ORDER BY id ASC";
+        String sql = "SELECT * FROM errands WHERE customer_id = ? ORDER BY id ASC";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

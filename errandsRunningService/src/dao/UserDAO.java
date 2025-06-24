@@ -1,5 +1,5 @@
 package dao;
-
+import model.Admin;
 import model.Customer;
 import model.Runner;
 import model.User;
@@ -27,10 +27,16 @@ public class UserDAO {
                     String role = rs.getString("role");
                     int rating = rs.getInt("rating");
 
-                    if ("runner".equalsIgnoreCase(role)) {
+                    // Add the missing Admin case
+                    if ("admin".equalsIgnoreCase(role)) {
+                        return new Admin(id, name, email, hashedPassword);
+                    } else if ("runner".equalsIgnoreCase(role)) {
                         return new Runner(id, name, email, hashedPassword, "-", "-", "-", rating);
-                    } else {
+                    } else if ("customer".equalsIgnoreCase(role)) {
                         return new Customer(id, name, email, hashedPassword);
+                    } else {
+                        System.err.println("Unknown role: " + role);
+                        return null;
                     }
                 }
             }
