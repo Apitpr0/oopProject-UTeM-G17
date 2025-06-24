@@ -8,46 +8,21 @@ import java.util.List;
 
 public class RunnerDAO {
 
-    // Check if Bob (runner_id = 2) is available
-    public static boolean isBobAvailable() {
-        String sql = """
-            SELECT 1 FROM runner_availability 
-            WHERE runner_id = 2 
-            AND day_of_week = DAYNAME(CURDATE())
-            AND CURTIME() BETWEEN start_time AND end_time
-            LIMIT 1""";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            ResultSet rs = stmt.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            System.err.println("❌ Error checking Bob's availability: " + e.getMessage());
-            return false;
-        }
-    }
-
-    // Get Bob's ID if available (always returns 2 if available)
-    public static Integer getBobIfAvailableNow() {
-        return isBobAvailable() ? 2 : null;
-    }
-
-    // Get all runners
-    public static List<Runner> getAvailableRunners() {
+    // ✅ Get all runners available now (based on time & day)
+    public static List<Runner> getAvailableRunnersNow() {
         List<Runner> availableRunners = new ArrayList<>();
 
         String sql = """
-        SELECT u.id, u.name, u.email, u.rating,
-               ra.day_of_week, ra.start_time, ra.end_time
-        FROM users u
-        JOIN runner_availability ra ON u.id = ra.runner_id
-        WHERE u.role = 'runner'
-          AND u.is_available = 1
-          AND ra.day_of_week = DAYNAME(CURDATE())
-          AND CURTIME() BETWEEN ra.start_time AND ra.end_time
-        ORDER BY u.id
-    """;
+            SELECT u.id, u.name, u.email, u.rating,
+                   ra.day_of_week, ra.start_time, ra.end_time
+            FROM users u
+            JOIN runner_availability ra ON u.id = ra.runner_id
+            WHERE u.role = 'runner'
+              AND u.is_available = 1
+              AND ra.day_of_week = DAYNAME(CURDATE())
+              AND CURTIME() BETWEEN ra.start_time AND ra.end_time
+            ORDER BY u.id
+        """;
 
         try (Connection conn = DBConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -58,7 +33,7 @@ public class RunnerDAO {
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("email"),
-                        "", // password not needed for display
+                        "", // password not needed
                         rs.getString("day_of_week"),
                         rs.getString("start_time"),
                         rs.getString("end_time"),
@@ -73,18 +48,18 @@ public class RunnerDAO {
         return availableRunners;
     }
 
-    // Get all runners (for displaying in CustomerDashboard)
+    // ✅ For displaying all runners with their schedule
     public static List<Runner> getAllRunnersWithAvailability() {
         List<Runner> runners = new ArrayList<>();
 
         String sql = """
-        SELECT u.id, u.name, u.email, u.rating,
-               ra.day_of_week, ra.start_time, ra.end_time
-        FROM users u
-        LEFT JOIN runner_availability ra ON u.id = ra.runner_id
-        WHERE u.role = 'runner'
-        ORDER BY u.id
-    """;
+            SELECT u.id, u.name, u.email, u.rating,
+                   ra.day_of_week, ra.start_time, ra.end_time
+            FROM users u
+            LEFT JOIN runner_availability ra ON u.id = ra.runner_id
+            WHERE u.role = 'runner'
+            ORDER BY u.id
+        """;
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -110,13 +85,8 @@ public class RunnerDAO {
         return runners;
     }
 
-
-    // Force Bob to always be available (override any availability settings)
+    // ✅ Update runner availability status (still keeps is_available flag)
     public static boolean setRunnerAvailability(int runnerId, boolean available) {
-        if (runnerId == 2) {
-            return true; // Bob is always considered available
-        }
-
         String sql = "UPDATE users SET is_available = ? WHERE id = ? AND role = 'runner'";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

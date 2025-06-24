@@ -8,6 +8,7 @@ import model.UrgentServiceRequest;
 import model.Runner;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
@@ -32,34 +33,61 @@ public class CustomerDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Top title
-        JLabel welcomeLabel = new JLabel("Welcome, " + customer.getName(), SwingConstants.CENTER);
+        // 🔝 Top Panel: Welcome + Logout
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JLabel welcomeLabel = new JLabel("Welcome, " + customer.getName(), SwingConstants.LEFT);
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        add(welcomeLabel, BorderLayout.NORTH);
 
-        // Center: Two tables side by side
-        JPanel centerPanel = new JPanel(new GridLayout(1, 2));
+        JButton logoutButton = new JButton("Log Out");
+        logoutButton.setPreferredSize(new Dimension(100, 30));
+        logoutButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose();
+                SwingUtilities.invokeLater(() -> new LoginPage(""));
+            }
+        });
 
-        // Request Table
+        topPanel.add(welcomeLabel, BorderLayout.WEST);
+        topPanel.add(logoutButton, BorderLayout.EAST);
+        add(topPanel, BorderLayout.NORTH);
+
+        // 📑 Tabbed Pane
+        JTabbedPane tabbedPane = new JTabbedPane();
+
+        // Tab 1: My Requests
+        JPanel requestPanel = new JPanel(new BorderLayout(10, 10));
+        requestPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         String[] requestColumns = {"Request ID", "Task", "Pickup", "Delivery", "Urgency", "Status", "Charge (RM)", "Assigned Runner"};
         requestTableModel = new DefaultTableModel(requestColumns, 0);
         requestTable = new JTable(requestTableModel);
-        centerPanel.add(new JScrollPane(requestTable));
+        requestTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        requestPanel.add(new JScrollPane(requestTable), BorderLayout.CENTER);
+        tabbedPane.addTab("My Requests", requestPanel);
 
-
-        // Runner Availability Table
+        // Tab 2: Runner Availability
+        JPanel runnerPanel = new JPanel(new BorderLayout(10, 10));
+        runnerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         String[] runnerColumns = {"Runner ID", "Name", "Day Available", "Start Time", "End Time", "Rating"};
         runnerTableModel = new DefaultTableModel(runnerColumns, 0);
         runnerTable = new JTable(runnerTableModel);
-        centerPanel.add(new JScrollPane(runnerTable));
+        runnerTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        runnerPanel.add(new JScrollPane(runnerTable), BorderLayout.CENTER);
+        tabbedPane.addTab("Runner Availability", runnerPanel);
 
-        add(centerPanel, BorderLayout.CENTER);
+        add(tabbedPane, BorderLayout.CENTER);
 
-        // Form inputs using GridBagLayout for better alignment
+        // 📝 Form Panel at Bottom
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createEmptyBorder(15 , 15, 15, 15));
+        formPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.GRAY),
+                "Submit New Request",
+                TitledBorder.LEFT,
+                TitledBorder.TOP
+        ));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(5, 10, 5, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField taskField = new JTextField(20);
@@ -67,48 +95,39 @@ public class CustomerDashboard extends JFrame {
         JTextField deliveryField = new JTextField(20);
         JCheckBox urgentBox = new JCheckBox("Urgent (+RM10)");
 
-        // Task row
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+        // Task
+        gbc.gridx = 0; gbc.gridy = 0;
         formPanel.add(new JLabel("Task Description:"), gbc);
         gbc.gridx = 1;
         formPanel.add(taskField, gbc);
 
-        // Pickup row
-        gbc.gridx = 0;
-        gbc.gridy = 1;
+        // Pickup
+        gbc.gridx = 0; gbc.gridy = 1;
         formPanel.add(new JLabel("Pickup Address:"), gbc);
         gbc.gridx = 1;
         formPanel.add(pickupField, gbc);
 
-        // Delivery row
-        gbc.gridx = 0;
-        gbc.gridy = 2;
+        // Delivery
+        gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Delivery Address:"), gbc);
         gbc.gridx = 1;
         formPanel.add(deliveryField, gbc);
 
-        // Urgent checkbox
-        gbc.gridx = 1;
-        gbc.gridy = 3;
+        // Urgency
+        gbc.gridx = 1; gbc.gridy = 3;
         formPanel.add(urgentBox, gbc);
 
-        // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Submit button (aligned right)
         JButton submitButton = new JButton("Submit");
         submitButton.setPreferredSize(new Dimension(100, 30));
-        JButton logoutButton = new JButton("Log Out");
-        logoutButton.setPreferredSize(new Dimension(100, 30));
-        buttonPanel.add(submitButton);
-        buttonPanel.add(logoutButton);
-
-        gbc.gridx = 1;
-        gbc.gridy = 4;
-        formPanel.add(buttonPanel, gbc);
+        JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        submitPanel.add(submitButton);
+        gbc.gridx = 1; gbc.gridy = 4;
+        formPanel.add(submitPanel, gbc);
 
         add(formPanel, BorderLayout.SOUTH);
 
-        // Submit button logic
+        // 🧠 Submit logic
         submitButton.addActionListener(e -> {
             String task = taskField.getText().trim();
             String pickup = pickupField.getText().trim();
@@ -138,17 +157,10 @@ public class CustomerDashboard extends JFrame {
             }
         });
 
-        // Log out button logic
-        logoutButton.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
-                dispose(); // Close window
-                SwingUtilities.invokeLater(() -> new LoginPage("")); // Show login screen again
-            }
-        });
-
+        // Refresh data
         refreshRequestTable();
         refreshRunnerTable();
+
         setVisible(true);
     }
 

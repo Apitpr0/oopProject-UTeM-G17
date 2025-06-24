@@ -2,8 +2,11 @@ package controller;
 
 import dao.ServiceDAO;
 import dao.RunnerDAO;
+import dao.RunnerAssignmentDAO;
 import model.ServiceRequest;
+import model.Runner;
 import util.DBConnection;
+
 import java.sql.*;
 import java.util.List;
 
@@ -20,31 +23,31 @@ public class ServiceController {
     }
 
     public boolean submitRequestWithRunnerAssignment(ServiceRequest request) {
-        // First, try assigning to Bob
-        Integer bobId = RunnerDAO.getBobIfAvailableNow();
+        // ✅ New: Get runners who are available now (based on runner_availability)
+        List<Runner> availableRunners = RunnerDAO.getAvailableRunnersNow();
 
-        if (bobId != null && bobId == 2) {
-            request.setAssignedRunnerId(bobId);
-            System.out.println("✅ Assigned Bob (runner_id=2) to request");
-            return serviceDAO.insertRequestWithRunner(request, bobId);
-        } else {
-            // if Bob is not available, try other runners
-            List<model.Runner> availableRunners = RunnerDAO.getAvailableRunners();
+        for (Runner runner : availableRunners) {
+            request.setAssignedRunnerId(runner.getId());
+            System.out.println("✅ Assigned runner (runner_id=" + runner.getId() + ") to request");
 
-            for (model.Runner runner : availableRunners) {
-                if (runner.getId() != 2) { // Skip Bob
-                    request.setAssignedRunnerId(runner.getId());
-                    System.out.println("✅ Assigned alternative runner (runner_id=" + runner.getId() + ") to request");
-                    return serviceDAO.insertRequestWithRunner(request, runner.getId());
-                }
+            boolean inserted = serviceDAO.insertRequestWithRunner(request, runner.getId());
+
+            if (inserted) {
+                return RunnerAssignmentDAO.insertRunnerAssignment(
+                        runner.getId(),
+                        request.getTaskDescription(),
+                        request.getPickupAddress() + " to " + request.getDeliveryAddress(),
+                        "Assigned"
+                );
             }
 
-            // No runner available
-            System.out.println("❌ No available runners - request submitted without assignment");
-            return serviceDAO.insertRequest(request);
+            return false; // request insert failed
         }
-    }
 
+        // ❌ No available runner now
+        System.out.println("❌ No available runners - request submitted without assignment");
+        return serviceDAO.insertRequest(request);
+    }
 
     public List<ServiceRequest> getRequestsByCustomer(int customerId) {
         return serviceDAO.getRequestsByCustomer(customerId);

@@ -4,6 +4,8 @@ import dao.ErrandDAO;
 import dao.RunnerAssignmentDAO;
 import dao.RunnerDAO;
 import model.Errand;
+import model.Runner;
+
 import java.util.List;
 
 public class ErrandService {
@@ -12,13 +14,21 @@ public class ErrandService {
         return ErrandDAO.insertErrand(errand, customerId);
     }
 
+    // ✅ Assign any available runner based on current schedule
     public boolean assignRunner(int errandId, String errandTitle, String errandDesc) {
-        if (!RunnerDAO.isBobAvailable()) {
-            System.out.println("❌ Auto-assignment failed: Bob is not available");
-            return false;
+        List<Runner> availableRunners = RunnerDAO.getAvailableRunnersNow();
+
+        for (Runner runner : availableRunners) {
+            boolean assigned = RunnerAssignmentDAO.assignRunnerToErrand(runner.getId(), errandId);
+
+            if (assigned) {
+                System.out.println("✅ Auto-assigned runner_id=" + runner.getId() + " to errand_id=" + errandId);
+                return true;
+            }
         }
 
-        return RunnerAssignmentDAO.assignBobToErrandIfAvailable(errandId, errandTitle, errandDesc);
+        System.out.println("❌ No available runners to assign at this time.");
+        return false;
     }
 
     public boolean updateStatus(int errandId, String newStatus) {

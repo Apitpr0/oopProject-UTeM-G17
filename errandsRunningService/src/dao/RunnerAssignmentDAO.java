@@ -35,57 +35,22 @@ public class RunnerAssignmentDAO {
         return assignments;
     }
 
-    // Assign runner to errand - ONLY allows Bob (runner_id = 2)
+    // Assign runner to errand
     public static boolean assignRunnerToErrand(int runnerId, int errandId) {
-        if (runnerId != 2) {
-            System.out.println("❌ Assignment blocked: Only Bob (runner_id=2) can be assigned");
-            return false;
-        }
 
         String sql = "INSERT INTO runner_assignments (runner_id, errand_id, status) VALUES (?, ?, 'assigned')";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, runnerId);
             stmt.setInt(2, errandId);
             return stmt.executeUpdate() > 0;
+
         } catch (SQLException e) {
             System.err.println("❌ Failed to assign runner: " + e.getMessage());
             return false;
         }
-    }
-
-    // Special method for Bob assignments
-    public static boolean assignBobToErrandIfAvailable(int errandId, String errandTitle, String errandDesc) {
-        // Use getBobIfAvailableNow() instead of isBobAvailable()
-        Integer bobId = RunnerDAO.getBobIfAvailableNow();
-        if (bobId == null) {
-            System.out.println("❌ Bob is not currently available");
-            return false;
-        }
-
-        String sql = """
-            INSERT INTO runner_assignments 
-            (runner_id, errand_id, errand_title, errand_description, status)
-            VALUES (?, ?, ?, ?, 'assigned')""";
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, bobId);  // Use the verified ID
-            stmt.setInt(2, errandId);
-            stmt.setString(3, errandTitle);
-            stmt.setString(4, errandDesc);
-
-            int rows = stmt.executeUpdate();
-            if (rows > 0) {
-                System.out.println("✅ Assigned Bob (runner_id=2) to errand_id: " + errandId);
-                return true;
-            }
-        } catch (SQLException e) {
-            System.err.println("❌ Failed to auto-assign Bob: " + e.getMessage());
-        }
-        return false;
     }
 
     // Update status of an assignment
@@ -126,5 +91,29 @@ public class RunnerAssignmentDAO {
             System.err.println("❌ Error fetching active assignments: " + e.getMessage());
         }
         return assignments;
+    }
+
+    // Insert runner assignment from ServiceController
+    public static boolean insertRunnerAssignment(int runnerId, String errandTitle, String errandDescription, String status) {
+        String sql = "INSERT INTO runner_assignments (runner_id, errand_title, errand_description, status) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, runnerId);
+            stmt.setString(2, errandTitle);
+            stmt.setString(3, errandDescription);
+            stmt.setString(4, status);
+
+            int rowsInserted = stmt.executeUpdate();
+            if (rowsInserted > 0) {
+                System.out.println("✅ Inserted runner assignment for runner_id=" + runnerId);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to insert runner assignment: " + e.getMessage());
+        }
+
+        return false;
     }
 }

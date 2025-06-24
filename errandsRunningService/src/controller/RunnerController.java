@@ -7,8 +7,8 @@ import java.util.List;
 
 public class RunnerController {
 
-    public List<Runner> getAvailableRunners() {
-        return RunnerDAO.getAvailableRunners();
+    public List<Runner> getAvailableRunnersNow() {
+        return RunnerDAO.getAvailableRunnersNow();
     }
 
     public boolean updateAvailability(int runnerId, boolean available) {
