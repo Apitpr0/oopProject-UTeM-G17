@@ -5,7 +5,8 @@ import controller.RunnerController;
 import model.Runner;
 import model.Admin;
 import model.RunnerStats;
-
+import model.ServiceRequest;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -57,7 +58,7 @@ public class AdminDashboard extends JFrame {
 
         JButton refreshButton = new JButton("🔄 Refresh All");
         refreshButton.addActionListener(e -> {
-//            loadCompletedErrands();
+            loadCompletedErrands();
             loadRunnerPerformance();
             JOptionPane.showMessageDialog(this, "Data refreshed successfully!", "Refresh Complete", JOptionPane.INFORMATION_MESSAGE);
         });
@@ -72,18 +73,13 @@ public class AdminDashboard extends JFrame {
         add(controlPanel, BorderLayout.SOUTH);
 
         // Initial load
-//        loadCompletedErrands();
+        loadCompletedErrands();
         loadRunnerPerformance();
 
         setVisible(true);
     }
     private void exportPerformanceData() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Runner Performance Report\n");
-        sb.append("=========================\n\n");
-        sb.append("Total Completed Tasks: ").append(totalTasksLabel.getText()).append("\n");
-        sb.append("Overall Average Rating: ").append(avgRatingLabel.getText()).append("\n");
-        sb.append("Top Performer: ").append(topRunnerLabel.getText()).append("\n\n");
 
         sb.append("Detailed Performance:\n");
         sb.append("Rank\tRunner ID\tRunner Name\tCompleted Tasks\tAvg Rating\tPerformance Score\n");
@@ -131,74 +127,75 @@ public class AdminDashboard extends JFrame {
         performanceTable.getColumnModel().getColumn(5).setPreferredWidth(130); // Performance Score
 
         // Summary panel at the top
-        JPanel summaryPanel = createSummaryPanel();
+//        JPanel summaryPanel = createSummaryPanel();
 
         // Add components to performance panel
-        performancePanel.add(summaryPanel, BorderLayout.NORTH);
+//        performancePanel.add(summaryPanel, BorderLayout.NORTH);
         performancePanel.add(new JScrollPane(performanceTable), BorderLayout.CENTER);
 
         return performancePanel;
     }
 
-    private JPanel createSummaryPanel() {
-        JPanel summaryPanel = new JPanel();
-        summaryPanel.setLayout(new BoxLayout(summaryPanel, BoxLayout.Y_AXIS));
-        summaryPanel.setBorder(BorderFactory.createTitledBorder("Performance Summary"));
-        summaryPanel.setBackground(new Color(240, 248, 255));
-
-        // First row of statistics
-        JPanel statsRow1 = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        statsRow1.setOpaque(false);
-
-        totalTasksLabel = new JLabel("0");
-        totalTasksLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        totalTasksLabel.setForeground(new Color(0, 100, 0));
-
-        avgRatingLabel = new JLabel("0.00");
-        avgRatingLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        avgRatingLabel.setForeground(new Color(0, 0, 150));
-
-        statsRow1.add(new JLabel("Total Completed Tasks: "));
-        statsRow1.add(totalTasksLabel);
-        statsRow1.add(Box.createHorizontalStrut(30));
-        statsRow1.add(new JLabel("Overall Average Rating: "));
-        statsRow1.add(avgRatingLabel);
-        statsRow1.add(new JLabel("⭐"));
-
-        // Second row - top performer
-        JPanel statsRow2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        statsRow2.setOpaque(false);
-
-        topRunnerLabel = new JLabel("Loading...");
-        topRunnerLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        topRunnerLabel.setForeground(new Color(150, 0, 0));
-
-        statsRow2.add(new JLabel("🏆 Top Performer: "));
-        statsRow2.add(topRunnerLabel);
-
-        summaryPanel.add(statsRow1);
-        summaryPanel.add(statsRow2);
-
-        return summaryPanel;
-    }
-
-////    private void loadCompletedErrands() {
-//        completedTableModel.setRowCount(0);
-//        List<ServiceRequest> completed = serviceController.getCompletedRequests();
+//    private JPanel createSummaryPanel() {
+//        JPanel summaryPanel = new JPanel();
+//        summaryPanel.setLayout(new BoxLayout(summaryPanel, BoxLayout.Y_AXIS));
+//        summaryPanel.setBorder(BorderFactory.createTitledBorder("Performance Summary"));
+//        summaryPanel.setBackground(new Color(240, 248, 255));
 //
-//        for (ServiceRequest req : completed) {
-//            String runnerName = serviceController.getRunnerNameByRequestId(req.getId());
-//            completedTableModel.addRow(new Object[]{
-//                    req.getId(),
-//                    req.getCustomerId(),
-//                    req.getTaskDescription(),
-//                    req.getPickupAddress(),
-//                    req.getDeliveryAddress(),
-//                    String.format("$%.2f", req.getAdditionalCharge()),
-//                    runnerName != null ? runnerName : "-"
-//            });
-//        }
+//        // First row of statistics
+//        JPanel statsRow1 = new JPanel(new FlowLayout(FlowLayout.CENTER));
+//        statsRow1.setOpaque(false);
+//
+//        totalTasksLabel = new JLabel("0");
+//        totalTasksLabel.setFont(new Font("Arial", Font.BOLD, 16));
+//        totalTasksLabel.setForeground(new Color(0, 100, 0));
+//
+//        avgRatingLabel = new JLabel("0.00");
+//        avgRatingLabel.setFont(new Font("Arial", Font.BOLD, 16));
+//        avgRatingLabel.setForeground(new Color(0, 0, 150));
+//
+//        statsRow1.add(new JLabel("Total Completed Tasks: "));
+//        statsRow1.add(totalTasksLabel);
+//        statsRow1.add(Box.createHorizontalStrut(30));
+//        statsRow1.add(new JLabel("Overall Average Rating: "));
+//        statsRow1.add(avgRatingLabel);
+//        statsRow1.add(new JLabel("⭐"));
+//
+//        // Second row - top performer
+//        JPanel statsRow2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
+//        statsRow2.setOpaque(false);
+//
+//        topRunnerLabel = new JLabel("Loading...");
+//        topRunnerLabel.setFont(new Font("Arial", Font.BOLD, 14));
+//        topRunnerLabel.setForeground(new Color(150, 0, 0));
+//
+//        statsRow2.add(new JLabel("🏆 Top Performer: "));
+//        statsRow2.add(topRunnerLabel);
+//
+//        summaryPanel.add(statsRow1);
+//        summaryPanel.add(statsRow2);
+//
+//        return summaryPanel;
 //    }
+
+
+    private void loadCompletedErrands() {
+        completedTableModel.setRowCount(0);
+        List<ServiceRequest> completed = serviceController.getCompletedRequests();
+
+        for (ServiceRequest req : completed) {
+            String runnerName = serviceController.getRunnerNameByRequestId(req.getId());
+            completedTableModel.addRow(new Object[]{
+                    req.getId(),
+                    req.getCustomerId(),
+                    req.getTaskDescription(),
+                    req.getPickupAddress(),
+                    req.getDeliveryAddress(),
+                    String.format("$%.2f", req.getAdditionalCharge()),
+                    runnerName != null ? runnerName : "-"
+            });
+        }
+    }
 
     private void loadRunnerPerformance() {
         performanceTableModel.setRowCount(0);
