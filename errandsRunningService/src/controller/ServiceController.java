@@ -2,13 +2,13 @@ package controller;
 
 import dao.ServiceDAO;
 import dao.RunnerDAO;
-import dao.RequestDAO;
-import model.Runner;
+import dao.RunnerAssignmentDAO;
 import model.ServiceRequest;
+import model.Runner;
 import util.DBConnection;
+
 import java.sql.*;
 import java.util.List;
-import java.util.Map;
 
 public class ServiceController {
 
@@ -23,28 +23,34 @@ public class ServiceController {
     }
 
     public boolean submitRequestWithRunnerAssignment(ServiceRequest request) {
-        // Only assign to Bob (runner_id = 2) if available
-        Integer bobId = RunnerDAO.getBobIfAvailableNow();
+        // ✅ New: Get runners who are available now (based on runner_availability)
+        List<Runner> availableRunners = RunnerDAO.getAvailableRunnersNow();
 
-        if (bobId != null && bobId == 2) {
-            request.setAssignedRunnerId(bobId);
-            System.out.println("✅ Assigned Bob (runner_id=2) to request");
-            return serviceDAO.insertRequestWithRunner(request, bobId);
+        for (Runner runner : availableRunners) {
+            request.setAssignedRunnerId(runner.getId());
+            System.out.println("✅ Assigned runner (runner_id=" + runner.getId() + ") to request");
+
+            boolean inserted = serviceDAO.insertRequestWithRunner(request, runner.getId());
+
+            if (inserted) {
+                return RunnerAssignmentDAO.insertRunnerAssignment(
+                        runner.getId(),
+                        request.getTaskDescription(),
+                        request.getPickupAddress() + " to " + request.getDeliveryAddress(),
+                        "Assigned"
+                );
+            }
+
+            return false; // request insert failed
         }
 
-        System.out.println("❌ Bob is not available - request submitted without assignment");
+        // ❌ No available runner now
+        System.out.println("❌ No available runners - request submitted without assignment");
         return serviceDAO.insertRequest(request);
     }
 
     public List<ServiceRequest> getRequestsByCustomer(int customerId) {
         return serviceDAO.getRequestsByCustomer(customerId);
-    }
-    public List<ServiceRequest> getCompletedRequests() {
-        return RequestDAO.getRequestsByStatus("Completed");
-    }
-
-    public Map<Runner, Integer> getRunnerPerformance() {
-        return RequestDAO.getRunnerPerformanceMap(); // You implement this in DAO
     }
 
     public String getRunnerNameByRequestId(int requestId) {
