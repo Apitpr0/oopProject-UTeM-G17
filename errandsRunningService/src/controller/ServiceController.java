@@ -187,13 +187,15 @@ public class ServiceController {
     public List<ServiceRequest> getCompletedRequests() {
         List<ServiceRequest> completedList = new ArrayList<>();
         String sql = """
-            SELECT t.request_id, cr.customer_id, cr.task_description,
-                   cr.pickup_address, cr.delivery_address, cr.additional_charge,
-                   u.name AS runner_name
-            FROM tasks t
-            JOIN cust_request cr ON t.request_id = cr.id
-            LEFT JOIN users u ON t.runner_id = u.id
-            WHERE t.status = 'arrived'
+        
+       SELECT t.id AS task_id, t.request_id, cr.customer_id, cr.task_description,
+               cr.pickup_address, cr.delivery_address, cr.additional_charge,
+               u.name AS runner_name
+                FROM tasks t
+                JOIN cust_request cr ON t.request_id = cr.id
+                LEFT JOIN users u ON t.runner_id = u.id
+                WHERE t.status = 'arrived'
+        
         """;
 
 
@@ -203,9 +205,9 @@ public class ServiceController {
 
             while (rs.next()) {
                 ServiceRequest req = new ServiceRequest();
-                req.setId(rs.getInt("request_id"));
-                req.setId(rs.getInt("customer_id"));
-                req.setStatus(rs.getString("task_description"));
+                req.setId(rs.getInt("request_id"));  // this is request ID
+                req.setCustomerId(rs.getInt("customer_id")); // ✅ correct!
+                req.setTaskDescription(rs.getString("task_description")); // ✅ correct!
                 req.setPickupAddress(rs.getString("pickup_address"));
                 req.setDeliveryAddress(rs.getString("delivery_address"));
                 req.setAdditionalCharge(rs.getDouble("additional_charge"));

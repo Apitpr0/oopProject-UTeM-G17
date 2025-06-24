@@ -91,6 +91,12 @@ public class ServiceRequest {
         this.id = id;
     }
 
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
+    }
+    public void setTaskDescription(String taskDescription) {
+        this.taskDescription = taskDescription;
+    }
     public void setStatus(String status) {
         this.status = status;
     }
