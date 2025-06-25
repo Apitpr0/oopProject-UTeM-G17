@@ -8,6 +8,7 @@ import model.User;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
 
 public class LoginPage extends JFrame {
     private JTextField emailField;
@@ -67,12 +68,18 @@ public class LoginPage extends JFrame {
                 dispose(); // Close login window
 
                 if (user instanceof Customer) {
-                    SwingUtilities.invokeLater(() -> new CustomerDashboard((Customer) user));
+                    SwingUtilities.invokeLater(() -> {
+                        try {
+                            new CustomerDashboard((Customer) user);
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    });
                 } else if (user instanceof Runner) {
-                    SwingUtilities.invokeLater(() -> new RunnerDashboard(user)); // Open the real RunnerDashboard
-                }else if (user instanceof Admin) {
-                    SwingUtilities.invokeLater(() -> new AdminDashboard((Admin)user));
-                }else {
+                    SwingUtilities.invokeLater(() -> new RunnerDashboard(user));
+                } else if (user instanceof Admin) {
+                    SwingUtilities.invokeLater(() -> new AdminDashboard((Admin) user));
+                } else {
                     JOptionPane.showMessageDialog(this, "Unknown role.");
                 }
             } else {
@@ -86,7 +93,7 @@ public class LoginPage extends JFrame {
             registerPage.setRegistrationListener(resultMessage -> {
                 JOptionPane.showMessageDialog(this, resultMessage);
                 String registeredEmail = registerPage.getRegisteredEmail();
-                dispose(); // Close current login page
+                dispose();
                 SwingUtilities.invokeLater(() -> new LoginPage(registeredEmail));
             });
         });
