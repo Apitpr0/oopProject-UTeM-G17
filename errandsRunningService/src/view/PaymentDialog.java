@@ -184,6 +184,7 @@ public class PaymentDialog {
                 showError("Invalid CVV. Must be 3 digits.");
                 return false;
             }
+
         } else if ("Digital Wallet".equals(method)) {
             JTextField phone = (JTextField) findComponentByName((JPanel) paymentPanel.getComponent(2), "walletPhone");
             JTextField code = (JTextField) findComponentByName((JPanel) paymentPanel.getComponent(2), "walletVerifyCode");

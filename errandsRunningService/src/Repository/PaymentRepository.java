@@ -42,6 +42,7 @@ public class PaymentRepository {
         }
     }
 
+
     public boolean updatePaymentStatus(int paymentId, String status) throws SQLException {
         String query = "UPDATE payments SET payment_status = ?, payment_date = CURRENT_TIMESTAMP WHERE payment_id = ?";
 
