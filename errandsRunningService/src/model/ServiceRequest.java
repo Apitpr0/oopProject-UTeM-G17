@@ -12,7 +12,7 @@ public class ServiceRequest {
     private int assignedRunnerId;
     private int rating;
     private String completionDate;
-
+    private String runnerName;
     // 🔹 Constructor for new request (before DB insert)
     public ServiceRequest(int customerId, String taskDescription, String pickupAddress, String deliveryAddress) {
         this.customerId = customerId;
@@ -39,7 +39,16 @@ public class ServiceRequest {
         this.additionalCharge = additionalCharge;
         this.assignedRunnerId = assignedRunnerId;
     }
+    public ServiceRequest(){
 
+    }
+    public String getRunnerName() {
+        return runnerName;
+    }
+
+    public void setRunnerName(String runnerName) {
+        this.runnerName = runnerName;
+    }
     // === Getters ===
     public int getId() {
         return id;
@@ -82,6 +91,12 @@ public class ServiceRequest {
         this.id = id;
     }
 
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
+    }
+    public void setTaskDescription(String taskDescription) {
+        this.taskDescription = taskDescription;
+    }
     public void setStatus(String status) {
         this.status = status;
     }

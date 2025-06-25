@@ -9,10 +9,7 @@ import model.Runner;
 import util.DBConnection;
 
 import java.sql.*;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ServiceController {
 
@@ -78,17 +75,23 @@ public class ServiceController {
 
         String sql = """
     SELECT\s
-        cr.assigned_runner_id AS runner_id,
+        u.id AS runner_id,
         u.name,
         u.email,
-        COUNT(cr.id) AS completed_tasks,
-        COALESCE(AVG(r.rating), 0) AS avg_rating
-    FROM cust_request cr
-    JOIN users u ON cr.assigned_runner_id = u.id
-    LEFT JOIN ratings r ON cr.id = r.task_id
-    WHERE cr.status = 'completed'
-    GROUP BY cr.assigned_runner_id, u.name, u.email
-    ORDER BY completed_tasks DESC,avg_rating DESC
+        COUNT(DISTINCT cr.id) AS completed_tasks,
+        COALESCE((
+            SELECT AVG(r.rating)
+            FROM ratings r
+            WHERE r.runner_id = u.id
+            ), 0) AS avg_rating
+    FROM users u
+    JOIN runner_assignments ra ON u.id = ra.runner_id
+    JOIN cust_request cr ON cr.assigned_runner_id
+    JOIN tasks t ON t.request_id = cr.id
+    WHERE ra.status = 'Completed' AND t.status = 'arrived'
+    GROUP BY u.id, u.name, u.email
+    ORDER BY completed_tasks DESC, avg_rating DESC;
+    
     """;
 
         try (Connection conn = DBConnection.getConnection();
@@ -136,17 +139,23 @@ public class ServiceController {
 
         String sql = """
     SELECT\s
-        cr.assigned_runner_id AS runner_id,
+        u.id AS runner_id,
         u.name,
         u.email,
-        COUNT(cr.id) AS completed_tasks,
-        COALESCE(AVG(r.rating), 0) AS avg_rating
-    FROM cust_request cr
-    JOIN users u ON cr.assigned_runner_id = u.id
-    LEFT JOIN ratings r ON cr.id = r.task_id
-    WHERE cr.status = 'completed'
-    GROUP BY cr.assigned_runner_id, u.name, u.email
-    ORDER BY completed_tasks DESC,avg_rating DESC
+        COUNT(DISTINCT cr.id) AS completed_tasks,
+        COALESCE((
+            SELECT AVG(r.rating)
+            FROM ratings r
+            WHERE r.runner_id = u.id
+            ), 0) AS avg_rating
+    FROM users u
+    JOIN runner_assignments ra ON u.id = ra.runner_id
+    JOIN cust_request cr ON cr.assigned_runner_id
+    JOIN tasks t ON t.request_id = cr.id
+    WHERE ra.status = 'Completed' AND t.status = 'arrived'
+    GROUP BY u.id, u.name, u.email
+    ORDER BY completed_tasks DESC, avg_rating DESC;
+    
     """;
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
@@ -179,4 +188,43 @@ public class ServiceController {
 
         return map;
     }
+    public List<ServiceRequest> getCompletedRequests() {
+        List<ServiceRequest> completedList = new ArrayList<>();
+        String sql = """
+        
+       SELECT t.id AS task_id, t.request_id, cr.customer_id, cr.task_description,
+               cr.pickup_address, cr.delivery_address, cr.additional_charge,
+               u.name AS runner_name
+                FROM tasks t
+                JOIN cust_request cr ON t.request_id = cr.id
+                LEFT JOIN users u ON t.runner_id = u.id
+                WHERE t.status = 'arrived'
+        
+        """;
+
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                ServiceRequest req = new ServiceRequest();
+                req.setId(rs.getInt("request_id"));  // this is request ID
+                req.setCustomerId(rs.getInt("customer_id")); // ✅ correct!
+                req.setTaskDescription(rs.getString("task_description")); // ✅ correct!
+                req.setPickupAddress(rs.getString("pickup_address"));
+                req.setDeliveryAddress(rs.getString("delivery_address"));
+                req.setAdditionalCharge(rs.getDouble("additional_charge"));
+                req.setRunnerName(rs.getString("runner_name"));
+
+                completedList.add(req);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return completedList;
+    }
+
 }
