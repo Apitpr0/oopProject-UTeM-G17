@@ -68,13 +68,7 @@ public class LoginPage extends JFrame {
                 dispose(); // Close login window
 
                 if (user instanceof Customer) {
-                    SwingUtilities.invokeLater(() -> {
-                        try {
-                            new CustomerDashboard((Customer) user);
-                        } catch (SQLException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    });
+                    SwingUtilities.invokeLater(() -> new CustomerDashboard((Customer) user));
                 } else if (user instanceof Runner) {
                     SwingUtilities.invokeLater(() -> new RunnerDashboard(user));
                 } else if (user instanceof Admin) {

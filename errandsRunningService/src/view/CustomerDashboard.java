@@ -16,6 +16,7 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 public class CustomerDashboard extends JFrame {
+
     private Customer customer;
     private JTable requestTable;
     private JTable runnerTable;
