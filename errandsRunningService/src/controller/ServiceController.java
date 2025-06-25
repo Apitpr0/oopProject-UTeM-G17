@@ -128,10 +128,6 @@ public class ServiceController {
         return map;
     }
 
-    public String getErrandStatus(int requestId, String task) {
-        return RunnerAssignmentDAO.getStatusByRunnerAndTask(requestId, task);
-    }
-
 
     // Alternative: If you want to rank runners by performance score
     public static Map < Runner, RunnerStats > getTopPerformingRunners() {
@@ -188,6 +184,70 @@ public class ServiceController {
 
         return map;
     }
+
+    public String getErrandStatus(int requestId, String task) {
+        return RunnerAssignmentDAO.getStatusByRunnerAndTask(requestId, task);
+    }
+    // ✅ Get All Users
+    public List<model.User> getAllUsers() {
+        List<model.User> users = new ArrayList<>();
+        String sql = "SELECT id, name, email, role FROM users";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                model.User user = new model.User();
+                user.setId(rs.getInt("id"));
+                user.setName(rs.getString("name"));
+                user.setEmail(rs.getString("email"));
+                user.setRole(rs.getString("role"));
+                users.add(user);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to get users: " + e.getMessage());
+        }
+        return users;
+    }
+
+
+
+    // ✅ Update Existing User (name/email/role)
+    public boolean updateUser(model.User user) {
+        String sql = "UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getEmail());
+            stmt.setString(3, user.getRole());
+            stmt.setInt(4, user.getId());
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to update user: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // ✅ Delete User by ID
+    public boolean deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to delete user: " + e.getMessage());
+        }
+        return false;
+    }
+
     public List<ServiceRequest> getCompletedRequests() {
         List<ServiceRequest> completedList = new ArrayList<>();
         String sql = """

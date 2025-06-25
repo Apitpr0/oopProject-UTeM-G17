@@ -2,10 +2,8 @@ package view;
 
 import controller.ServiceController;
 import controller.RunnerController;
-import model.Runner;
-import model.Admin;
-import model.RunnerStats;
-import model.ServiceRequest;
+import model.*;
+
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -17,6 +15,7 @@ public class AdminDashboard extends JFrame {
     private JTabbedPane tabbedPane;
     private JTable completedTable;
     private JTable performanceTable;
+    private JTable ManageUserTable;
     private DefaultTableModel completedTableModel;
     private DefaultTableModel performanceTableModel;
     private ServiceController serviceController;
@@ -26,6 +25,7 @@ public class AdminDashboard extends JFrame {
     private JLabel totalTasksLabel;
     private JLabel avgRatingLabel;
     private JLabel topRunnerLabel;
+    private User user;
 
     public AdminDashboard(Admin admin) {
         this.admin = admin;
@@ -66,18 +66,127 @@ public class AdminDashboard extends JFrame {
         JButton exportButton = new JButton("📊 Export Performance");
         exportButton.addActionListener(e -> exportPerformanceData());
 
+
+        JButton logoutButton = new JButton("🚪 Log Out");
+        logoutButton.setPreferredSize(new Dimension(120, 30));
+        logoutButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dispose(); // close current window
+                SwingUtilities.invokeLater(() -> new LoginPage("")); // reopen login
+            }
+        });
+
         controlPanel.add(refreshButton);
         controlPanel.add(exportButton);
+        controlPanel.add(logoutButton);
 
         add(tabbedPane, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
+        JPanel manageUserPanel = createUserManagementPanel();
+        tabbedPane.addTab("👥 Manage Users", manageUserPanel);
 
         // Initial load
+        createUserManagementPanel();
+        addSearchBarToCompletedPanel(completedPanel);
+        addSearchBarToPerformancePanel(performancePanel);
         loadCompletedErrands();
         loadRunnerPerformance();
 
         setVisible(true);
     }
+    private JPanel createUserManagementPanel() {
+        JPanel userPanel = new JPanel(new BorderLayout());
+        String[] cols = {"ID", "Name", "Email", "Role"};
+        DefaultTableModel userModel = new DefaultTableModel(cols, 0);
+        JTable userTable = new JTable(userModel);
+
+        // Load user data
+        List<User> users = serviceController.getAllUsers(); // ← You need to create this in your DAO
+        for (User u : users) {
+            userModel.addRow(new Object[]{u.getId(), u.getName(), u.getEmail(), u.getRole()});
+        }
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton editButton = new JButton("✏️ Edit");
+        JButton deleteButton = new JButton("🗑️ Delete");
+
+        // Add button logic (simplified, can expand to forms)
+
+
+        editButton.addActionListener(e -> {
+            int row = userTable.getSelectedRow();
+            if (row >= 0) {
+                int userId = (int) userModel.getValueAt(row, 0);
+                String currentName = (String) userModel.getValueAt(row, 1);
+                String currentEmail = (String) userModel.getValueAt(row, 2);
+                String currentRole = (String) userModel.getValueAt(row, 3);
+
+                JTextField nameField = new JTextField(currentName);
+                JTextField emailField = new JTextField(currentEmail);
+                String[] roles = {"admin", "customer", "runner"};
+                JComboBox<String> roleBox = new JComboBox<>(roles);
+                roleBox.setSelectedItem(currentRole);
+
+                JPanel panel = new JPanel(new GridLayout(0, 1));
+                panel.add(new JLabel("Name:"));
+                panel.add(nameField);
+                panel.add(new JLabel("Email:"));
+                panel.add(emailField);
+                panel.add(new JLabel("Role:"));
+                panel.add(roleBox);
+
+                int result = JOptionPane.showConfirmDialog(null, panel, "✏️ Edit User",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                if (result == JOptionPane.OK_OPTION) {
+                    String newName = nameField.getText().trim();
+                    String newEmail = emailField.getText().trim();
+                    String newRole = (String) roleBox.getSelectedItem();
+
+                    if (!newName.isEmpty() && !newEmail.isEmpty()) {
+                        User updatedUser = new User();
+                        updatedUser.setId(userId);
+                        updatedUser.setName(newName);
+                        updatedUser.setEmail(newEmail);
+                        updatedUser.setRole(newRole);
+
+                        boolean success = serviceController.updateUser(updatedUser);
+                        if (success) {
+                            // Update UI table
+                            userModel.setValueAt(newName, row, 1);
+                            userModel.setValueAt(newEmail, row, 2);
+                            userModel.setValueAt(newRole, row, 3);
+                            JOptionPane.showMessageDialog(null, "✅ User updated successfully!");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "❌ Failed to update user.");
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Name and Email cannot be empty!");
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select a user to edit.");
+            }
+        });
+
+        deleteButton.addActionListener(e -> {
+            int row = userTable.getSelectedRow();
+            if (row >= 0) {
+                int userId = (int) userModel.getValueAt(row, 0);
+                serviceController.deleteUser(userId); // ← You implement this
+                userModel.removeRow(row);
+            }
+        });
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+
+        userPanel.add(new JScrollPane(userTable), BorderLayout.CENTER);
+        userPanel.add(buttonPanel, BorderLayout.SOUTH);
+        return userPanel;
+    }
+
     private void exportPerformanceData() {
         StringBuilder sb = new StringBuilder();
 
@@ -239,4 +348,54 @@ public class AdminDashboard extends JFrame {
             }
         }
     }
+    private void addSearchBarToCompletedPanel(JPanel panel) {
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JTextField searchField = new JTextField(10);
+        JButton searchButton = new JButton("🔍 Search ID");
+
+        searchButton.addActionListener(e -> {
+            String input = searchField.getText().trim();
+            if (input.isEmpty()) return;
+
+            for (int i = 0; i < completedTableModel.getRowCount(); i++) {
+                int id = Integer.parseInt(completedTableModel.getValueAt(i, 0).toString());
+                if (Integer.toString(id).equals(input)) {
+                    completedTable.setRowSelectionInterval(i, i);
+                    completedTable.scrollRectToVisible(completedTable.getCellRect(i, 0, true));
+                    break;
+                }
+            }
+        });
+
+        searchPanel.add(new JLabel("Search Request ID: "));
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+        panel.add(searchPanel, BorderLayout.NORTH);
+    }
+
+    private void addSearchBarToPerformancePanel(JPanel panel) {
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JTextField searchField = new JTextField(10);
+        JButton searchButton = new JButton("🔍 Search ID");
+
+        searchButton.addActionListener(e -> {
+            String input = searchField.getText().trim();
+            if (input.isEmpty()) return;
+
+            for (int i = 0; i < performanceTableModel.getRowCount(); i++) {
+                int id = Integer.parseInt(performanceTableModel.getValueAt(i, 1).toString());
+                if (Integer.toString(id).equals(input)) {
+                    performanceTable.setRowSelectionInterval(i, i);
+                    performanceTable.scrollRectToVisible(performanceTable.getCellRect(i, 0, true));
+                    break;
+                }
+            }
+        });
+
+        searchPanel.add(new JLabel("Search Runner ID: "));
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+        panel.add(searchPanel, BorderLayout.NORTH);
+    }
+
 }
