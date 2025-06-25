@@ -6,6 +6,10 @@ import java.sql.SQLException;
 
 public class PaymentController {
     private final PaymentService paymentService;
+//
+//    public PaymentController(){
+//
+//    }
 
     public PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;

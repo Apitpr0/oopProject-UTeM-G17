@@ -2,6 +2,7 @@ package Repository;
 
 import model.Payment;
 import java.sql.*;
+import java.sql.SQLException;
 
 public class PaymentRepository {
     private final Connection connection;
