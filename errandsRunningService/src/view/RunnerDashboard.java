@@ -164,22 +164,36 @@ public class RunnerDashboard extends JFrame {
                 setOpaque(true);
 
                 if (!isSelected) {
-                    switch (status) {
-                        case "Pending":
-                            c.setBackground(new Color(255, 245, 204)); // Light yellow/orange
+                    switch (status.toLowerCase()) {
+                        case "pending":
+                            c.setBackground(Color.YELLOW); // Same as ⏳ Pending
                             c.setFont(c.getFont().deriveFont(Font.PLAIN));
+                            value = "⏳ Pending";
                             break;
-                        case "In Progress":
-                            c.setBackground(new Color(204, 229, 255)); // Light blue
-                            c.setFont(c.getFont().deriveFont(Font.BOLD)); // Bold
-                            break;
-                        case "Completed":
-                            c.setBackground(new Color(204, 255, 204)); // Light green
+
+                        case "in progress":
+                            c.setBackground(new Color(173, 216, 230)); // Same as 🔄 In Progress
                             c.setFont(c.getFont().deriveFont(Font.PLAIN));
+                            value = "🔄 In Progress";
                             break;
+
+                        case "completed":
+                            c.setBackground(Color.GREEN); // Same as ✅ Completed
+                            c.setFont(c.getFont().deriveFont(Font.PLAIN));
+                            value = "✅ Completed";
+                            break;
+
+                        case "assigned":
+                            c.setBackground(new Color(255, 255, 204)); // Optional: Pale yellow
+                            c.setFont(c.getFont().deriveFont(Font.PLAIN));
+                            value = "📌 Assigned";
+                            break;
+
                         default:
                             c.setBackground(Color.WHITE);
+                            value = status; // fallback
                     }
+
                 } else {
                     c.setBackground(table.getSelectionBackground());
                 }
