@@ -137,7 +137,6 @@ public class CustomerDashboard extends JFrame {
 
         add(formPanel, BorderLayout.SOUTH);
 
-        // Submit Logic
         submitButton.addActionListener(e -> {
             String task = taskField.getText().trim();
             String pickup = pickupField.getText().trim();
@@ -147,6 +146,12 @@ public class CustomerDashboard extends JFrame {
             if (task.isEmpty() || pickup.isEmpty() || delivery.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please fill in all fields.");
                 return;
+            }
+
+            // ✅ Check runner availability BEFORE showing quote
+            if (!runnerController.isAnyRunnerAvailableNow()) {
+                JOptionPane.showMessageDialog(this, "⚠️ No runners are available at the moment. Please try again later.");
+                return; // Don't proceed to quote/payment
             }
 
             double[] quoteDetails = calculateQuote(pickup, delivery, isUrgent);
@@ -187,7 +192,7 @@ public class CustomerDashboard extends JFrame {
         });
 
 
-    // Track Your Order Button Functionality (opens new pop-up window)
+        // Track Your Order Button Functionality (opens new pop-up window)
         trackOrderButton.addActionListener(e -> {
             int selectedRow = requestTable.getSelectedRow();
             if (selectedRow == -1) {

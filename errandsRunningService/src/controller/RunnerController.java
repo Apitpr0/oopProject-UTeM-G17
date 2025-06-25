@@ -18,5 +18,10 @@ public class RunnerController {
     public List<Runner> getAllRunnersWithAvailability() {
         return RunnerDAO.getAllRunnersWithAvailability();
     }
+    public boolean isAnyRunnerAvailableNow() {
+        return !RunnerDAO.getAvailableRunnersNow().isEmpty();
+    }
+
+
 
 }

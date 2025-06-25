@@ -98,5 +98,6 @@ public class RunnerDAO {
             System.err.println("❌ Failed to update runner availability: " + e.getMessage());
             return false;
         }
+
     }
 }
