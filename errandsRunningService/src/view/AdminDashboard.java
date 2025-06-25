@@ -1,9 +1,6 @@
 package view;
-
 import controller.ServiceController;
-import controller.RunnerController;
 import model.*;
-
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -15,22 +12,15 @@ public class AdminDashboard extends JFrame {
     private JTabbedPane tabbedPane;
     private JTable completedTable;
     private JTable performanceTable;
-    private JTable ManageUserTable;
     private DefaultTableModel completedTableModel;
     private DefaultTableModel performanceTableModel;
     private ServiceController serviceController;
-    private RunnerController runnerController;
 
-    // Summary labels for performance statistics
-    private JLabel totalTasksLabel;
-    private JLabel avgRatingLabel;
-    private JLabel topRunnerLabel;
-    private User user;
 
     public AdminDashboard(Admin admin) {
         this.admin = admin;
         serviceController = new ServiceController();
-        runnerController = new RunnerController();
+
 
         setTitle("Admin Dashboard - Welcome " + admin.getName());
         setSize(1200, 700);
@@ -235,57 +225,11 @@ public class AdminDashboard extends JFrame {
         performanceTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Avg Rating
         performanceTable.getColumnModel().getColumn(5).setPreferredWidth(130); // Performance Score
 
-        // Summary panel at the top
-//        JPanel summaryPanel = createSummaryPanel();
-
-        // Add components to performance panel
-//        performancePanel.add(summaryPanel, BorderLayout.NORTH);
         performancePanel.add(new JScrollPane(performanceTable), BorderLayout.CENTER);
 
         return performancePanel;
     }
 
-//    private JPanel createSummaryPanel() {
-//        JPanel summaryPanel = new JPanel();
-//        summaryPanel.setLayout(new BoxLayout(summaryPanel, BoxLayout.Y_AXIS));
-//        summaryPanel.setBorder(BorderFactory.createTitledBorder("Performance Summary"));
-//        summaryPanel.setBackground(new Color(240, 248, 255));
-//
-//        // First row of statistics
-//        JPanel statsRow1 = new JPanel(new FlowLayout(FlowLayout.CENTER));
-//        statsRow1.setOpaque(false);
-//
-//        totalTasksLabel = new JLabel("0");
-//        totalTasksLabel.setFont(new Font("Arial", Font.BOLD, 16));
-//        totalTasksLabel.setForeground(new Color(0, 100, 0));
-//
-//        avgRatingLabel = new JLabel("0.00");
-//        avgRatingLabel.setFont(new Font("Arial", Font.BOLD, 16));
-//        avgRatingLabel.setForeground(new Color(0, 0, 150));
-//
-//        statsRow1.add(new JLabel("Total Completed Tasks: "));
-//        statsRow1.add(totalTasksLabel);
-//        statsRow1.add(Box.createHorizontalStrut(30));
-//        statsRow1.add(new JLabel("Overall Average Rating: "));
-//        statsRow1.add(avgRatingLabel);
-//        statsRow1.add(new JLabel("⭐"));
-//
-//        // Second row - top performer
-//        JPanel statsRow2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
-//        statsRow2.setOpaque(false);
-//
-//        topRunnerLabel = new JLabel("Loading...");
-//        topRunnerLabel.setFont(new Font("Arial", Font.BOLD, 14));
-//        topRunnerLabel.setForeground(new Color(150, 0, 0));
-//
-//        statsRow2.add(new JLabel("🏆 Top Performer: "));
-//        statsRow2.add(topRunnerLabel);
-//
-//        summaryPanel.add(statsRow1);
-//        summaryPanel.add(statsRow2);
-//
-//        return summaryPanel;
-//    }
 
 
     private void loadCompletedErrands() {

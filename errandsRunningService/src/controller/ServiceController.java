@@ -192,6 +192,61 @@ public class ServiceController {
         }
         return null;
     }
+    public List<model.User> getAllUsers() {
+        List<model.User> users = new ArrayList<>();
+        String sql = "SELECT id, name, email, role FROM users";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                model.User user = new model.User();
+                user.setId(rs.getInt("id"));
+                user.setName(rs.getString("name"));
+                user.setEmail(rs.getString("email"));
+                user.setRole(rs.getString("role"));
+                users.add(user);
+            }
+
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to get users: " + e.getMessage());
+        }
+        return users;
+    }
+    public boolean updateUser(model.User user) {
+        String sql = "UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getEmail());
+            stmt.setString(3, user.getRole());
+            stmt.setInt(4, user.getId());
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to update user: " + e.getMessage());
+        }
+        return false;
+    }
+
+    // ✅ Delete User by ID
+    public boolean deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to delete user: " + e.getMessage());
+        }
+        return false;
+    }
+
 
     public List<Task> getCustomerTasks(int customerId) {
         List<Task> tasks = new ArrayList<>();
@@ -201,7 +256,7 @@ public class ServiceController {
                    u.name AS runner_name
             FROM tasks t
             JOIN cust_request cr ON t.request_id = cr.id
-            LEFT JOIN users u ON t.runner_id = u.id
+            LEFT JOIN users u ON t.runner_id
             WHERE t.customer_id = ?
             ORDER BY t.updated_at DESC
             """;
@@ -249,7 +304,7 @@ public class ServiceController {
                     ), 0) AS avg_rating
             FROM users u
             JOIN runner_assignments ra ON u.id = ra.runner_id
-            JOIN cust_request cr ON cr.assigned_runner_id = u.id
+            JOIN cust_request cr ON cr.assigned_runner_id
             JOIN tasks t ON t.request_id = cr.id
             WHERE ra.status = 'Completed' AND t.status = 'arrived'
             GROUP BY u.id, u.name, u.email
@@ -294,8 +349,7 @@ public class ServiceController {
         Map<Runner, RunnerStats> map = new LinkedHashMap<>();
 
         String sql = """
-line136
-            SELECT 
+            SELECT
                 u.id AS runner_id,
                 u.name,
                 u.email,
@@ -307,7 +361,7 @@ line136
                     ), 0) AS avg_rating
             FROM users u
             JOIN runner_assignments ra ON u.id = ra.runner_id
-            JOIN cust_request cr ON cr.assigned_runner_id = u.id
+            JOIN cust_request cr ON cr.assigned_runner_id
             JOIN tasks t ON t.request_id = cr.id
             WHERE ra.status = 'Completed' AND t.status = 'arrived'
             GROUP BY u.id, u.name, u.email
