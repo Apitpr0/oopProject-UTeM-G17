@@ -14,7 +14,9 @@ public class User {
         this.password = password;
         this.role = role;
     }
-
+    public User() {
+        // Required for frameworks, JDBC, and reflection-based loading
+    }
     // Getters
     public int getId() { return id; }
     public String getName() { return name; }
