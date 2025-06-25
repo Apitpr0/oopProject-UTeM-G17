@@ -103,6 +103,7 @@ public class CustomerDashboard extends JFrame {
         requestPanel.add(new JScrollPane(requestTable), BorderLayout.CENTER);
         tabbedPane.addTab("My Requests", requestPanel);
 
+
         // Runner Availability Tab
         JPanel runnerPanel = new JPanel(new BorderLayout(10, 10));
         runnerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -112,8 +113,10 @@ public class CustomerDashboard extends JFrame {
 
         runnerPanel.add(new JScrollPane(runnerTable), BorderLayout.CENTER);
         tabbedPane.addTab("Runner Availability", runnerPanel);
-
         add(tabbedPane, BorderLayout.CENTER);
+        // Customer History Tab
+        JPanel historyPanel = new cust_history(customer);  // We'll build this panel class next
+        tabbedPane.addTab("History & Rating", historyPanel);
 
         // Submit Form
         JPanel formPanel = new JPanel(new GridBagLayout());

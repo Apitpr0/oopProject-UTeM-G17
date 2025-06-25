@@ -244,7 +244,7 @@ public class AdminDashboard extends JFrame {
                     req.getTaskDescription(),
                     req.getPickupAddress(),
                     req.getDeliveryAddress(),
-                    String.format("$%.2f", req.getAdditionalCharge()),
+                    String.format("RM%.2f", req.getAdditionalCharge()),
                     runnerName != null ? runnerName : "-"
             });
         }
