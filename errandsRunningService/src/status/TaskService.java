@@ -1,71 +1,48 @@
 package status;
 
-import java.sql.*;
+import model.ServiceRequest;
 import util.DBConnection;
+import java.sql.*;
 
 public class TaskService {
 
-    // Method to update the task status in the database
-    public void updateTaskStatus(int taskId, String newStatus) {
-        String currentStatus = getCurrentStatus(taskId);  // Fetch current status from the DB
+    private Connection connection;
 
-        // Validate that the transition is allowed
-        if (isValidTransition(currentStatus, newStatus)) {
-            String query = "UPDATE tasks SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-            try (Connection conn = DBConnection.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(query)) {
-                stmt.setString(1, newStatus);  // Set the new status
-                stmt.setInt(2, taskId);        // Specify which task to update
-                stmt.executeUpdate();
-                sendStatusUpdateToCustomer(taskId, newStatus);  // Notify the customer
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        } else {
-            // If the transition is invalid, print an error message
-            System.out.println("Invalid status transition from " + currentStatus + " to " + newStatus);
+    public TaskService() {
+        try {
+            this.connection = DBConnection.getConnection(); // Using your existing DB connection
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to establish database connection: " + e.getMessage());
         }
     }
 
-    // Method to check if the status transition is valid
-    private boolean isValidTransition(String currentStatus, String newStatus) {
-        // Define valid transitions for each current status
-        switch (currentStatus) {
-            case "picked_up":
-                return newStatus.equals("on_the_way");
-            case "on_the_way":
-                return newStatus.equals("arrived") || newStatus.equals("missing");
-            case "arrived":
-                return false;  // No further status transitions after "arrived"
-            case "missing":
-                return false;  // No further status transitions after "missing"
-            default:
-                return false;  // If the current status is invalid
-        }
-    }
+    // Fetch service request by ID
+    public ServiceRequest getServiceRequestById(int orderId) {
+        String query = "SELECT cr.*, u.name as runner_name FROM cust_request cr " +
+                "LEFT JOIN users u ON cr.assigned_runner_id = u.id " +
+                "WHERE cr.id = ?";
 
-    // Method to fetch the current status of a task from the database
-    private String getCurrentStatus(int taskId) {
-        String currentStatus = "";
-        String query = "SELECT status FROM tasks WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, taskId);  // Use the taskId to fetch the status
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, orderId);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                currentStatus = rs.getString("status");
+                ServiceRequest request = new ServiceRequest();
+                request.setId(orderId);
+                request.setCustomerId(rs.getInt("customer_id"));
+                request.setTaskDescription(rs.getString("task_description"));
+                request.setPickupAddress(rs.getString("pickup_address"));
+                request.setDeliveryAddress(rs.getString("delivery_address"));
+                request.setUrgency(rs.getString("urgency"));
+                request.setStatus(rs.getString("status"));
+                request.setAdditionalCharge(rs.getDouble("additional_charge"));
+                request.setAssignedRunnerId(rs.getInt("assigned_runner_id"));
+                request.setRunnerName(rs.getString("runner_name"));
+                return request;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("❌ Error fetching service request: " + e.getMessage());
         }
-        return currentStatus;  // Return the current status of the task
-    }
-
-    // Method to send status update to the customer (this can be enhanced for real notifications)
-    private void sendStatusUpdateToCustomer(int taskId, String newStatus) {
-        // Logic for notifying the customer (using the Communication class or another notification service)
-        System.out.println("Task " + taskId + " status updated to: " + newStatus);
-        // You can add additional logic here to send an email/SMS, or update the UI
+        return null;
     }
 }
