@@ -116,4 +116,26 @@ public class RunnerAssignmentDAO {
 
         return false;
     }
+
+    public static String getStatusByRunnerAndTask(int runnerId, String task) {
+        String status = "-";
+        String sql = "SELECT status FROM runner_assignments WHERE runner_id = ? AND errand_title = ? LIMIT 1";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, runnerId);
+            stmt.setString(2, task);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    status = rs.getString("status");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return status;
+    }
+
+
+
 }

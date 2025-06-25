@@ -125,6 +125,10 @@ public class ServiceController {
         return map;
     }
 
+    public String getErrandStatus(int requestId, String task) {
+        return RunnerAssignmentDAO.getStatusByRunnerAndTask(requestId, task);
+    }
+
 
     // Alternative: If you want to rank runners by performance score
     public static Map < Runner, RunnerStats > getTopPerformingRunners() {
