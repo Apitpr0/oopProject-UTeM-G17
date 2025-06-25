@@ -136,6 +136,4 @@ public class RunnerAssignmentDAO {
         return status;
     }
 
-
-
 }

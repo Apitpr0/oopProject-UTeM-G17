@@ -9,6 +9,7 @@ import model.Runner;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.text.DecimalFormat;
@@ -46,7 +47,7 @@ public class CustomerDashboard extends JFrame {
             int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
                 dispose();
-                new LoginPage("someTitle").setVisible(true); // Provide an appropriate title
+                new LoginPage("").setVisible(true); // Provide an appropriate title
             }
         });
 
@@ -60,11 +61,44 @@ public class CustomerDashboard extends JFrame {
         // My Requests Tab
         JPanel requestPanel = new JPanel(new BorderLayout(10, 10));
         requestPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        String[] requestColumns = {"Request ID", "Task", "Pickup", "Delivery", "Urgency", "Status", "Charge (RM)", "Assigned Runner"};
+        String[] requestColumns = {"Task", "Route", "Urgency", "Charge (RM)", "Assigned Runner", "Status"};
         requestTableModel = new DefaultTableModel(requestColumns, 0);
         requestTable = new JTable(requestTableModel);
         requestTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        requestTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+        // status
+        requestTable.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                String status = value != null ? value.toString().toLowerCase() : "";
+                String emojiStatus = status;
+                Color bgColor = Color.WHITE;
+
+                switch (status) {
+                    case "pending" -> {
+                        emojiStatus = "⏳ Pending";
+                        bgColor = Color.YELLOW;
+                    }
+                    case "in progress" -> {
+                        emojiStatus = "🔄 In Progress";
+                        bgColor = new Color(173, 216, 230);
+                    }
+                    case "completed" -> {
+                        emojiStatus = "✅ Completed";
+                        bgColor = Color.GREEN;
+                    }
+                    case "assigned" -> {
+                        emojiStatus = "Assigned";
+                    }
+                }
+                setText(emojiStatus);
+                setBackground(isSelected ? table.getSelectionBackground() : bgColor);
+                setForeground(Color.BLACK);
+                return c;
+            }
+        });
+
         requestPanel.add(new JScrollPane(requestTable), BorderLayout.CENTER);
         tabbedPane.addTab("My Requests", requestPanel);
 
@@ -74,13 +108,13 @@ public class CustomerDashboard extends JFrame {
         String[] runnerColumns = {"Runner ID", "Name", "Day Available", "Start Time", "End Time", "Rating"};
         runnerTableModel = new DefaultTableModel(runnerColumns, 0);
         runnerTable = new JTable(runnerTableModel);
-        runnerTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
         runnerPanel.add(new JScrollPane(runnerTable), BorderLayout.CENTER);
         tabbedPane.addTab("Runner Availability", runnerPanel);
 
         add(tabbedPane, BorderLayout.CENTER);
 
-        // Form Panel
+        // Submit Form
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(Color.GRAY),
@@ -126,10 +160,10 @@ public class CustomerDashboard extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         formPanel.add(trackOrderPanel, gbc);
 
-        // Submit button (right side)
+        // Submit button
         JButton submitButton = new JButton("Submit");
-        submitButton.setPreferredSize(new Dimension(100, 30));
-        JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         submitPanel.add(submitButton);
         gbc.gridx = 1; gbc.gridy = 4;
         gbc.anchor = GridBagConstraints.EAST;
@@ -157,23 +191,19 @@ public class CustomerDashboard extends JFrame {
             double[] quoteDetails = calculateQuote(pickup, delivery, isUrgent);
             DecimalFormat df = new DecimalFormat("0.00");
 
-            int confirm = JOptionPane.showConfirmDialog(
-                    this,
-                    "Quote Details:\n" +
-                            "Distance: " + String.format("%.1f", quoteDetails[0]) + " km\n" +
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Quote Details:\nDistance: " + String.format("%.1f", quoteDetails[0]) + " km\n" +
                             "Base Fee: RM" + df.format(quoteDetails[1]) + "\n" +
                             "Distance Fee: RM" + df.format(quoteDetails[2]) + "\n" +
                             (isUrgent ? "Urgency Surcharge: RM10.00\n" : "") +
                             "Tax (10%): RM" + df.format(quoteDetails[3]) + "\n" +
-                            "--------------------------\n" +
-                            "Total: RM" + df.format(quoteDetails[4]) + "\n\n" +
-                            "Do you want to proceed?",
-                    "Quote Preview", JOptionPane.YES_NO_OPTION
-            );
+                            "--------------------------\nTotal: RM" + df.format(quoteDetails[4]) +
+                            "\n\nDo you want to proceed?",
+                            "Quote Preview", JOptionPane.YES_NO_OPTION);
+
 
             if (confirm == JOptionPane.YES_OPTION) {
-                ServiceRequest request = isUrgent
-                        ? new UrgentServiceRequest(customer.getId(), task, pickup, delivery)
+                ServiceRequest request = isUrgent ? new UrgentServiceRequest(customer.getId(), task, pickup, delivery)
                         : new ServiceRequest(customer.getId(), task, pickup, delivery);
 
                 boolean success = serviceController.submitRequestWithRunnerAssignment(request);
@@ -225,15 +255,13 @@ public class CustomerDashboard extends JFrame {
 
         for (ServiceRequest req : requests) {
             String assignedRunner = serviceController.getRunnerNameByRequestId(req.getId());
+            String errandStatus = serviceController.getErrandStatus(req.getAssignedRunnerId(), req.getTaskDescription());
+            String route = req.getPickupAddress() + " → " + req.getDeliveryAddress();
+
             requestTableModel.addRow(new Object[]{
-                    req.getId(),
-                    req.getTaskDescription(),
-                    req.getPickupAddress(),
-                    req.getDeliveryAddress(),
-                    req.getUrgency(),
-                    req.getStatus(),
-                    String.format("%.2f", req.getAdditionalCharge()),
-                    assignedRunner != null ? assignedRunner : "-"
+                    req.getTaskDescription(), route, req.getUrgency(),
+                    String.format("RM %.2f", req.getAdditionalCharge()),
+                    assignedRunner != null ? assignedRunner : "-", errandStatus
             });
         }
     }
@@ -244,12 +272,8 @@ public class CustomerDashboard extends JFrame {
 
         for (Runner runner : allRunners) {
             runnerTableModel.addRow(new Object[]{
-                    runner.getId(),
-                    runner.getName(),
-                    runner.getDayOfWeek(),
-                    runner.getStartTime(),
-                    runner.getEndTime(),
-                    runner.getRating()
+                    runner.getId(), runner.getName(), runner.getDayOfWeek(),
+                    runner.getStartTime(), runner.getEndTime(), runner.getRating()
             });
         }
     }
@@ -260,16 +284,12 @@ public class CustomerDashboard extends JFrame {
         double urgentCharge = 10.00;
         double taxRate = 0.10;
 
-        double distance = calculateDistance(pickup, delivery);
+        double distance = 2 + Math.random() * 18;
         double distanceFee = distance * perKmRate;
         double subtotal = baseFee + distanceFee + (isUrgent ? urgentCharge : 0);
         double tax = subtotal * taxRate;
         double total = subtotal + tax;
 
         return new double[]{distance, baseFee, distanceFee, tax, total};
-    }
-
-    private double calculateDistance(String pickup, String delivery) {
-        return 2 + Math.random() * 18; // 2–20km range
     }
 }

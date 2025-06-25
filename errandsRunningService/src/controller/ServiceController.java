@@ -345,6 +345,11 @@ public class ServiceController {
         return map;
     }
 
+    public String getErrandStatus(int requestId, String task) {
+        return RunnerAssignmentDAO.getStatusByRunnerAndTask(requestId, task);
+    }
+
+
     public static Map<Runner, RunnerStats> getTopPerformingRunners() {
         Map<Runner, RunnerStats> map = new LinkedHashMap<>();
 
