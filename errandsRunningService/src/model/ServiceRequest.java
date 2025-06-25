@@ -1,6 +1,11 @@
 package model;
 
+import util.DBConnection;
+
+import java.sql.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServiceRequest {
     private int id;
@@ -14,7 +19,9 @@ public class ServiceRequest {
     private Integer assignedRunnerId; // Changed to Integer to match NULLable in DB
     private String runnerName; // Additional field not in DB
     private Timestamp createdAt; // Added to match DB field
-
+    private int rating;
+    private int runnerId;
+    private int taskId;
     // Empty constructor for flexible object creation
     public ServiceRequest() {
         this.id = 0;
@@ -52,6 +59,7 @@ public class ServiceRequest {
     }
 
     // Getters
+    public int getRating() { return rating; }
     public int getId() { return id; }
     public int getCustomerId() { return customerId; }
     public String getTaskDescription() { return taskDescription; }
@@ -62,9 +70,14 @@ public class ServiceRequest {
     public double getAdditionalCharge() { return additionalCharge; }
     public int getAssignedRunnerId() { return assignedRunnerId; }
     public String getRunnerName() { return runnerName; }
+    public int getRunnerId() { return runnerId; }
+    public int getTaskId() { return taskId; }
 
     // Setters
+    public void setTaskId(int taskId) { this.taskId = taskId; }
     public void setId(int id) { this.id = id; }
+    public void setRating(int rating) { this.rating = rating; }
+    public void setRunnerId(int runnerId) { this.runnerId = runnerId; }
     public void setCustomerId(int customerId) { this.customerId = customerId; }
     public void setTaskDescription(String taskDescription) { this.taskDescription = taskDescription; }
     public void setStatus(String status) { this.status = status; }
@@ -74,4 +87,8 @@ public class ServiceRequest {
     public void setAdditionalCharge(double additionalCharge) { this.additionalCharge = additionalCharge; }
     public void setAssignedRunnerId(int assignedRunnerId) { this.assignedRunnerId = assignedRunnerId; }
     public void setRunnerName(String runnerName) { this.runnerName = runnerName; }
+
+
+
+
 }

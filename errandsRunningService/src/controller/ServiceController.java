@@ -366,23 +366,22 @@ public class ServiceController {
         Map<Runner, RunnerStats> map = new HashMap<>();
 
         String sql = """
-            SELECT 
-                u.id AS runner_id,
-                u.name,
-                u.email,
-                u.rating,
-                COUNT(DISTINCT cr.id) AS completed_tasks,
-                COALESCE((
-                    SELECT AVG(r.rating)
-                    FROM ratings r
-                    WHERE r.runner_id = u.id
-                    ), 0) AS avg_rating
-            FROM users u
-            LEFT JOIN cust_request cr ON u.id = cr.assigned_runner_id
-            LEFT JOIN tasks t ON t.request_id = cr.id
-            WHERE u.role = 'runner' AND (t.status = 'arrived' OR t.status IS NULL)
-            GROUP BY u.id, u.name, u.email, u.rating
-            ORDER BY completed_tasks DESC, avg_rating DESC
+                SELECT
+                  u.id AS runner_id,
+                  u.name,
+                   u.email,
+                  COUNT(DISTINCT cr.id) AS completed_tasks,
+                  COALESCE((
+                      SELECT AVG(r.rating)
+                      FROM ratings r
+                      WHERE r.runner_id = u.id
+                  ), 0) AS avg_rating
+              FROM users u
+              JOIN runner_assignments ra ON u.id = ra.runner_id
+              JOIN cust_request cr ON ra.request_id = cr.id
+              WHERE ra.status = 'Completed'
+              GROUP BY u.id, u.name, u.email
+            ORDER BY completed_tasks DESC, avg_rating DESC;
             """;
 
         try (Connection conn = DBConnection.getConnection();
@@ -394,11 +393,8 @@ public class ServiceController {
                         rs.getInt("runner_id"),
                         rs.getString("name"),
                         rs.getString("email"),
-                        "",
-                        "",
-                        "",
-                        "",
-                        rs.getInt("rating")
+                        "", "", "", "",
+                        (int) Math.round(rs.getDouble("avg_rating"))
                 );
 
                 RunnerStats stats = new RunnerStats(
@@ -419,19 +415,19 @@ public class ServiceController {
     public List<ServiceRequest> getCompletedRequests() {
         List<ServiceRequest> completedList = new ArrayList<>();
         String sql = """
-            SELECT 
-                t.id AS task_id, 
-                t.request_id, 
-                cr.customer_id, 
+            SELECT
+                ra.id AS assignment_id,
+                ra.request_id,
+                cr.customer_id,
                 cr.task_description,
-                cr.pickup_address, 
-                cr.delivery_address, 
+                cr.pickup_address,
+                cr.delivery_address,
                 cr.additional_charge,
                 u.name AS runner_name
-            FROM tasks t
-            JOIN cust_request cr ON t.request_id = cr.id
-            LEFT JOIN users u ON t.runner_id = u.id
-            WHERE t.status = 'arrived'
+            FROM runner_assignments ra
+            JOIN cust_request cr ON ra.request_id = cr.id
+            LEFT JOIN users u ON ra.runner_id = u.id
+            WHERE ra.status = 'Completed';
             """;
 
         try (Connection conn = DBConnection.getConnection();
